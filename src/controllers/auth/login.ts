@@ -15,6 +15,7 @@ import { Response, Request } from 'express';
  */
 export default asyncHandler(async (req: Request, res: Response) => {
   try {
+    console.log(req.body)
     User.findOne({
       $or: [
         // check the email or the username for the userId field sent from the front

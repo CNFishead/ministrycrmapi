@@ -1,4 +1,4 @@
-const setupSocket = require('./setupSocket');
+import setupSocket from './setupSocket';
 const colors = require('colors');
 
 /**
