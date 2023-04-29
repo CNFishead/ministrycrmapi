@@ -2,6 +2,7 @@ import asyncHandler from '../../middleware/asyncHandler';
 import Ministry from '../../models/Ministry';
 import User from '../../models/User';
 import { Response, Request } from 'express';
+import userObject from '../../utils/userObject';
 /**
  * @description: this function registers a new account to the database. 
  *               It will check if the email is already in use, if it is, it will throw an error
@@ -22,7 +23,7 @@ import { Response, Request } from 'express';
 export default asyncHandler(async (req: Request, res: Response) => {
   try {
     // first check if the required fields are in the request body
-    const { email, password, firstName, lastName } = req.body;
+    const { email, password, firstName, lastName } = req.body.user;
     if (!email || !password || !firstName || !lastName) {
       return res.status(400).json({ message: "Please enter all fields" });
     }
@@ -49,7 +50,13 @@ export default asyncHandler(async (req: Request, res: Response) => {
       ...req.body.ministry,
     })
     // return the user object to the front
-    return res.status(201).json({ user: newUser, message: "User Created", success: true });
+    return res.status(201).json({  
+      message: "User Created", 
+      success: true,
+      // use the userObject function to return the user object to the front
+      // this will remove the password from the user object and other fields we don't want to return
+      user: await userObject(newUser.id)
+    });
   } catch (error: any) {
     console.log(error);
     res.status(500).json({ message: `Something Went Wrong: ${error.message}` });   
