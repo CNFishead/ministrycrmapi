@@ -55,7 +55,7 @@ export default asyncHandler(async (req: Request, res: Response) => {
       success: true,
       // use the userObject function to return the user object to the front
       // this will remove the password from the user object and other fields we don't want to return
-      user: await userObject(newUser.id)
+      user: await userObject(newUser._id) 
     });
   } catch (error: any) {
     console.log(error);

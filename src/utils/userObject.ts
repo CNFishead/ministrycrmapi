@@ -9,7 +9,7 @@ import User from "../models/User";
  *  @throws:     If the user is not found or if the user is not active
  *
  */
-export default async (id: string) => {
+export default async (id: any) => { 
   try {
     User.aggregate([
       {
