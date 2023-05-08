@@ -31,7 +31,6 @@ export interface UserType extends mongoose.Document {
   getSignedJwtToken: () => string;
   getResetPasswordToken: () => string;
   matchPassword: (enteredPassword: string) => boolean;
-
 }
 
 /**
@@ -232,6 +231,8 @@ UserSchema.methods.getResetPasswordToken = async function () {
 
   // Set expiration, 10 minutes
   this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+  // save the user
+  await this.save({ validateBeforeSave: true });
   return resetToken;
 };
 export default mongoose.model<UserType>("User", UserSchema);

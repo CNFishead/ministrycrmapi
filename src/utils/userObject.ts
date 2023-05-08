@@ -34,6 +34,7 @@ export default async (id: any) => {
           email: 1,
           ministries: 1,
           role:1,
+          profileImageUrl: 1,
         },
       }
     ]);
