@@ -2,20 +2,23 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import mongoose from 'mongoose';
 
-/*
-  @Desc:   Authenticates a user.
-
-  @Notes:  This function is how we differentiate between a user, guest, and 
-           admin. 
-           By calling this function in our routes, we can just pass either 
-           protect, or admin into the route and it will protect  the route.
-*/
 
 interface JwtPayload {
   _id: string;
   iat: number;
   exp: number;
 }
+
+/**
+ * @description middleware to check if the user is logged in, if the token is invalid or expired, it will return a 403 error
+ * @param routes a list of routes that require the user to be logged in with
+ * @returns a middleware function
+ * 
+ * @author Austin Howard
+ * @version 1.0
+ * @since 1.0
+ * @lastModified 2023-05-08T16:41:52.000-05:00
+ */
 const protect = (routes?: any) => {
   return async (req: any, res: any, next: any) => {
     let token;
