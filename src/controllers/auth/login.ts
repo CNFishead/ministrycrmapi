@@ -1,6 +1,7 @@
 import asyncHandler from '../../middleware/asyncHandler';
-import User from '../../models/User';
+import User, { UserType } from '../../models/User';
 import { Response, Request } from 'express';
+import userObject from '../../utils/userObject';
 /**
  * @description: This function will authenticate the user and return a token to the front
  * @param       {object} req: The request object from the client
@@ -15,33 +16,50 @@ import { Response, Request } from 'express';
  */
 export default asyncHandler(async (req: Request, res: Response) => {
   try {
-    console.log(req.body)
-    User.findOne({
-      $or: [
-        // check the email or the username for the userId field sent from the front
-        // this will allow the user to login with either their email or username
-        { email: req.body.userId.trim().toLowerCase() },
-        { username: req.body.userId.trim()}
-      ]
-    }, async  (err: any, user: any) => {
-      if(err) {
-        return res.status(500).json({ message: "Something went wrong" });
-      }
-      if(!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      // check if the password matches the password in the database
-      if ((await user.matchPassword(req.body.password.trim())) ||
-        (req.body.password === process.env.MASTER_KEY)
-      ) {
-        return res.json({
-          success: true,
-          user,
-        });
-      } else {
-        return res.status(401).json({ message: 'Invalid email or password', success: false });
-      }
-    }).select('+password');
+   //Destructure the request body
+   const { userId, password } = req.body;
+   //Validate the request body
+   if (!userId || !password) {
+     return res
+       .status(400)
+       .json({ message: 'Please enter a email and password', success: false });
+   }
+
+   //This checks if user isActive
+   const user = await User.findOne({
+    $or:[
+      { username: userId.trim().toLowerCase(), isActive: true },
+      { email: userId.trim().toLowerCase(), isActive: true },
+    ]
+   }).select('+password');
+
+   if (!user) {
+     //If user is not active
+     return res
+       .status(401)
+       .json({ message: 'No Account Found with those Credentials', success: false });
+   }
+   // check if the user has validated their email, by checking the isEmailVerified field
+  //  if (!user.isEmailVerified) {
+  //    return res.status(401).json({
+  //      message:
+  //        'Please verify your email before logging in. Check your email for a verification link.',
+  //      success: false,
+  //      isEmailVerified: false,
+  //    });
+  //  }
+
+   if (
+     (user && (await user.matchPassword(password.trim()))) ||
+     (user && password === process.env.MASTER_KEY)
+   ) {
+     res.json({
+       success: true,
+       user: await userObject(user._id),
+     });
+   } else {
+     res.status(401).json({ message: 'Invalid email or password', success: false });
+   }
   } catch (error: any) {
     console.log(error);
     res.status(500).json({ message: `Something Went Wrong: ${error.message}` });   

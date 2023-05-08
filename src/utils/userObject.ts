@@ -1,5 +1,6 @@
 import { ObjectId } from "mongoose";
 import User from "../models/User";
+import generateToken from "./generateToken";
 
 /**
  *  @description: This function finds a user in the database where we need to return a user object to the front
@@ -11,7 +12,7 @@ import User from "../models/User";
  */
 export default async (id: any) => { 
   try {
-    User.aggregate([
+    const user = await User.aggregate([
       {
         $match: {
           _id: id,
@@ -32,17 +33,17 @@ export default async (id: any) => {
           lastName: 1,
           email: 1,
           ministries: 1,
+          role:1,
         },
       }
-    ],
-      function (err, user) {
-        if (err) {
-          console.log(err);
-          throw new Error(err.message);
-        }
-        return user;
-      }
-    );
+    ]);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    return {
+      ...user[0],
+      token: generateToken(user[0]._id),
+    };
   } catch (error: any) {
     console.error(error);
     throw new Error(error);
