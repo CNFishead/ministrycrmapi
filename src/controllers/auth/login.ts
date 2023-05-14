@@ -1,5 +1,6 @@
 import asyncHandler from '../../middleware/asyncHandler';
-import User, { UserType } from '../../models/User';
+import User from '../../models/User';
+import UserType from '../../types/UserType';
 import { Response, Request } from 'express';
 import userObject from '../../utils/userObject';
 /**

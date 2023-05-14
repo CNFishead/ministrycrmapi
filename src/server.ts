@@ -58,7 +58,7 @@ app.use("/api/v1", apiV1Routes);
 // Init Middleware
 // Has to be after routes, or the controllers cant use the middleware
 app.use(errorHandler);
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "../public")));
 
 app.get("/", (req: Request, res: Response) => {
   res.send("API is running...");

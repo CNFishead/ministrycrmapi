@@ -35,7 +35,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       return res.status(404).json({ message: 'User not found' });
     }
     // if the updatedUser object is not null, return the updatedUser object, using the userObject method to remove the password field
-    res.status(200).json({ success: true, user: userObject(updatedUser._id) });
+    res.status(200).json({ success: true, user: await userObject(updatedUser._id) });
   } catch (error: any) {
     console.log(error);
     errorHandler(error, req, res, next);
