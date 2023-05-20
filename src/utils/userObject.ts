@@ -1,4 +1,4 @@
-import { ObjectId } from "mongoose";
+import mongoose, { ObjectId } from "mongoose";
 import User from "../models/User";
 import generateToken from "./generateToken";
 
@@ -18,27 +18,50 @@ export default async (id: any) => {
           _id: id,
         },
       },
+      // use the id of the user to find the ministry that the user is a leader of
       {
-        // find all the ministries that the user is a part of and populate the ministry object
         $lookup: {
-          from: "ministry",
+          from: "ministries",
           localField: "_id",
           foreignField: "leader",
-          as: "ministries",
+          as: "ministry",
+          pipeline: [
+            {
+              $lookup:{
+                from: "users",
+                localField: "leader",
+                foreignField: "_id",
+                as: "leader",
+              }
+            },
+            {
+              $unwind: {
+                path: "$leader",
+                preserveNullAndEmptyArrays: true,
+            }
+            },
+          ],
         },
+      },
+      {
+        $unwind: {
+          path: "$ministry",
+          preserveNullAndEmptyArrays: true,
+        }
       },
       {
         $project: {
           firstName: 1,
           lastName: 1,
           email: 1,
-          ministries: 1,
+          ministry: 1,
           role:1,
           profileImageUrl: 1,
         },
       }
     ]);
-    if (!user) {
+    console.log(user[0])
+    if (!user[0]) {
       throw new Error("User not found");
     }
     return {

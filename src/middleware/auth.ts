@@ -35,17 +35,17 @@ const protect = (routes?: any) => {
         if (req.user.isActive === false) {
           return res
             .status(401)
-            .json({ message: 'Not authorized, token failed3' });
+            .json({ message: 'Not authorized, token failed' });
         }
         req.user.token = token;
         next();
       } catch (e) {
         //console.log(e)
-        return res.status(403).json({ message: 'Not authorized, token failed4' });
+        return res.status(403).json({ message: 'Not authorized, token failed' });
       }
     }
     if (!token) {
-      return res.status(403).json({ message: 'Not authorized, token failed5' });
+      return res.status(403).json({ message: 'Not authorized, token failed' });
     }
   };
 };
