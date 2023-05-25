@@ -56,6 +56,7 @@ app.use(hpp());
 
 app.use("/api/v1", apiV1Routes);
 app.post('/webhook', (req, res) => {
+  console.log(`Webhook received!`)
   // Process the webhook payload and execute Git pull
   executeGitPull();
   // Restart the server
