@@ -10,6 +10,7 @@ const morgan = require("morgan");
 // const { cronJobs } = require(('./utils/cronJobs.js'));
 const path = require("path");
 const cors = require("cors");
+const nodemon = require("nodemon");
 // Routes
 //const middlewares
 const mongoSanitize = require("express-mongo-sanitize");
@@ -53,7 +54,22 @@ app.use(hpp());
 // Define Routes
 
 app.use("/api/v1", apiV1Routes);
+app.post('/webhook', (req, res) => {
+  // Process the webhook payload and execute Git pull
+  executeGitPull();
+  // Restart the server
+  restartServer(() => {
+    console.log('Server restarted successfully!');
+    // Respond with a success status
+    return res.sendStatus(200);
+  });
+});
 
+// Function to restart the server
+function restartServer(callback: any) {
+  nodemon.restart();
+  callback();
+}
 
 // Init Middleware
 // Has to be after routes, or the controllers cant use the middleware
