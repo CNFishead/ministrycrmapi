@@ -3,6 +3,7 @@ import db from "./config/db";
 import apiV1Routes from "./routes/v1/apiV1Routes";
 import errorHandler from "./middleware/error";
 import socketConnection from "./sockets/socketConnection";
+const { executeGitPull } = require('./utils/executeGitPull.ts');
 const dotenv = require("dotenv");
 const colors = require("colors");
 const fileUpload = require("express-fileupload");
