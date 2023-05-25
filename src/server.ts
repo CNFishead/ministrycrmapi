@@ -77,7 +77,7 @@ app.use(errorHandler);
 app.use(express.static(path.join(__dirname, "../public")));
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("API is running...");
+  res.send("API is running... Shepherds of Christ Ministries");
 });
 
 const server = app.listen(PORT, () => {
