@@ -12,6 +12,7 @@ const morgan = require("morgan");
 const path = require("path");
 const cors = require("cors");
 const nodemon = require("nodemon");
+const hostname = '0.0.0.0'
 // Routes
 //const middlewares
 const mongoSanitize = require("express-mongo-sanitize");
@@ -27,7 +28,7 @@ db();
 
 const app = express();
 
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
 // cronJobs();
 
 if (process.env.NODE_ENV === "development") {
@@ -82,7 +83,7 @@ app.get("/", (req: Request, res: Response) => {
   res.send("API is running... Shepherds of Christ Ministries, made another change..");
 });
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, hostname, () => {
   console.log(colors.yellow(`Server has started on port: ${PORT}, in ${process.env.NODE_ENV}`));
 })
 
