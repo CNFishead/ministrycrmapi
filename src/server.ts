@@ -4,6 +4,7 @@ import apiV1Routes from "./routes/v1/apiV1Routes";
 import errorHandler from "./middleware/error";
 import socketConnection from "./sockets/socketConnection";
 import executeGitPull from "./utils/executeGitPull";
+const fs = require("fs");
 const dotenv = require("dotenv");
 const colors = require("colors");
 const fileUpload = require("express-fileupload");
@@ -13,6 +14,8 @@ const path = require("path");
 const cors = require("cors");
 const nodemon = require("nodemon");
 const hostname = '0.0.0.0'
+var privateKey = fs.readFileSync(path.resolve(path.join('./key.pem')));
+var certificate = fs.readFileSync(path.resolve(path.join('./cert.pem')));
 // Routes
 //const middlewares
 const mongoSanitize = require("express-mongo-sanitize");
@@ -83,7 +86,10 @@ app.get("/", (req: Request, res: Response) => {
   res.send("API is running... Shepherds of Christ Ministries, made another change..");
 });
 
-const server = app.listen(PORT, hostname, () => {
+// attach the certificate and key to the server
+let server = require('https').createServer({key: privateKey, cert: certificate }, app);
+
+server = app.listen(PORT, hostname, () => {
   console.log(colors.yellow(`Server has started on port: ${PORT}, in ${process.env.NODE_ENV}`));
 })
 
