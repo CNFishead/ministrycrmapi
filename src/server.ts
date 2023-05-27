@@ -4,18 +4,20 @@ import apiV1Routes from "./routes/v1/apiV1Routes";
 import errorHandler from "./middleware/error";
 import socketConnection from "./sockets/socketConnection";
 import executeGitPull from "./utils/executeGitPull";
-const fs = require("fs");
-const dotenv = require("dotenv");
-const colors = require("colors");
-const fileUpload = require("express-fileupload");
-const morgan = require("morgan");
-// const { cronJobs } = require(('./utils/cronJobs.js'));
-const path = require("path");
-const cors = require("cors");
-const nodemon = require("nodemon");
+import { createServer as createHTTPServer } from "http";
+import { createServer as createHTTPSServer } from "https";
+import fs from "fs";
+import dotenv from "dotenv";
+import colors from "colors";
+import fileUpload from "express-fileupload";
+import morgan from "morgan";
+// import { cronJobs } from ('./utils/cronJobs.js';
+import path from "path";
+import cors from "cors";
+import nodemon from "nodemon";
 const hostname = '0.0.0.0'
-let privateKey = fs.readFileSync(path.resolve(path.join('./key.pem')));
-let certificate = fs.readFileSync(path.resolve(path.join('./cert.pem')));
+const privateKey = fs.readFileSync(path.resolve(path.join('./key.pem')));
+const certificate = fs.readFileSync(path.resolve(path.join('./cert.pem')));
 // Routes
 //const middlewares
 const mongoSanitize = require("express-mongo-sanitize");
@@ -83,20 +85,23 @@ app.use(errorHandler);
 app.use(express.static(path.join(__dirname, "../public")));
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("API is running... Shepherds of Christ Ministries, made another change..");
+  res.send("API is running... Shepherds of Christ Ministries");
 });
 
 // attach the certificate and key to the server
-let server = require('https').createServer({key: privateKey, cert: certificate }, app);
+let server;
 
-server.listen(PORT, hostname, () => {
+if (process.env.NODE_ENV === "production") {
+  server = createHTTPSServer({ key: privateKey, cert: certificate }, app);
+} else {
+  server = createHTTPServer(app);
+}
+
+const httpServer = server.listen(PORT, hostname, () => {
   console.log(colors.yellow(`Server has started on port: ${PORT}, in ${process.env.NODE_ENV}`));
-})
-// server = app.listen(PORT, hostname, () => {
-//   console.log(colors.yellow(`Server has started on port: ${PORT}, in ${process.env.NODE_ENV}`));
-// })
+});
 
-const io = new Server(server, {
+const io = new Server(httpServer, {
   cors: {
     origin: "*",
   },
