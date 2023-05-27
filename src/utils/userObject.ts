@@ -1,5 +1,6 @@
-import { ObjectId } from "mongoose";
+import mongoose, { ObjectId } from "mongoose";
 import User from "../models/User";
+import generateToken from "./generateToken";
 
 /**
  *  @description: This function finds a user in the database where we need to return a user object to the front
@@ -11,38 +12,62 @@ import User from "../models/User";
  */
 export default async (id: any) => { 
   try {
-    User.aggregate([
+    const user = await User.aggregate([
       {
         $match: {
           _id: id,
         },
       },
+      // use the id of the user to find the ministry that the user is a leader of
       {
-        // find all the ministries that the user is a part of and populate the ministry object
         $lookup: {
-          from: "ministry",
+          from: "ministries",
           localField: "_id",
           foreignField: "leader",
-          as: "ministries",
+          as: "ministry",
+          pipeline: [
+            {
+              $lookup:{
+                from: "users",
+                localField: "leader",
+                foreignField: "_id",
+                as: "leader",
+              }
+            },
+            {
+              $unwind: {
+                path: "$leader",
+                preserveNullAndEmptyArrays: true,
+            }
+            },
+          ],
         },
+      },
+      {
+        $unwind: {
+          path: "$ministry",
+          preserveNullAndEmptyArrays: true,
+        }
       },
       {
         $project: {
           firstName: 1,
           lastName: 1,
           email: 1,
-          ministries: 1,
+          ministry: 1,
+          role:1,
+          profileImageUrl: 1,
         },
       }
-    ],
-      function (err, user) {
-        if (err) {
-          console.log(err);
-          throw new Error(err.message);
-        }
-        return user;
-      }
-    );
+    ]);
+    console.log(user[0])
+    if (!user[0]) {
+      throw new Error("User not found");
+    }
+    return {
+      ...user[0],
+      token: generateToken(user[0]._id),
+    };
   } catch (error: any) {
     console.error(error);
     throw new Error(error);

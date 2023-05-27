@@ -31,6 +31,7 @@
     "node-cron": "^3.0.2",
     "nodemailer": "^6.9.1",
     "npm": "^9.6.7",
+    "sharp": "^0.32.1",
     "slugify": "^1.6.5",
     "socket.io": "^4.6.1",
     "uuid": "^9.0.0",

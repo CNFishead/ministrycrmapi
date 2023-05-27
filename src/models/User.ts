@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import bcyrpt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import UserType from "../types/UserType";
 
 /**
  * @description - This is the user schema
@@ -143,6 +144,10 @@ const UserSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
   },
@@ -197,6 +202,8 @@ UserSchema.methods.getResetPasswordToken = async function () {
 
   // Set expiration, 10 minutes
   this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+  // save the user
+  await this.save({ validateBeforeSave: true });
   return resetToken;
 };
-export default mongoose.model("User", UserSchema);
+export default mongoose.model<UserType>("User", UserSchema);

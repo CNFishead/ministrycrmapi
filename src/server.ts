@@ -3,6 +3,8 @@ import db from "./config/db";
 import apiV1Routes from "./routes/v1/apiV1Routes";
 import errorHandler from "./middleware/error";
 import socketConnection from "./sockets/socketConnection";
+import executeGitPull from "./utils/executeGitPull";
+const fs = require("fs");
 const dotenv = require("dotenv");
 const colors = require("colors");
 const fileUpload = require("express-fileupload");
@@ -10,6 +12,10 @@ const morgan = require("morgan");
 // const { cronJobs } = require(('./utils/cronJobs.js'));
 const path = require("path");
 const cors = require("cors");
+const nodemon = require("nodemon");
+const hostname = '0.0.0.0'
+let privateKey = fs.readFileSync(path.resolve(path.join('./key.pem')));
+let certificate = fs.readFileSync(path.resolve(path.join('./cert.pem')));
 // Routes
 //const middlewares
 const mongoSanitize = require("express-mongo-sanitize");
@@ -25,7 +31,7 @@ db();
 
 const app = express();
 
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
 // cronJobs();
 
 if (process.env.NODE_ENV === "development") {
@@ -53,20 +59,42 @@ app.use(hpp());
 // Define Routes
 
 app.use("/api/v1", apiV1Routes);
+app.post('/webhook', (req, res) => {
+  console.log(`Webhook received!`)
+  // Process the webhook payload and execute Git pull
+  executeGitPull();
+  // Restart the server
+  restartServer(() => {
+    console.log('Server restarted successfully!');
+    // Respond with a success status
+    return res.sendStatus(200);
+  });
+});
 
+// Function to restart the server
+function restartServer(callback: any) {
+  nodemon.restart();
+  callback();
+}
 
 // Init Middleware
 // Has to be after routes, or the controllers cant use the middleware
 app.use(errorHandler);
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "../public")));
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("API is running...");
+  res.send("API is running... Shepherds of Christ Ministries, made another change..");
 });
 
-const server = app.listen(PORT, () => {
+// attach the certificate and key to the server
+let server = require('https').createServer({key: privateKey, cert: certificate }, app);
+
+server.listen(PORT, hostname, () => {
   console.log(colors.yellow(`Server has started on port: ${PORT}, in ${process.env.NODE_ENV}`));
 })
+// server = app.listen(PORT, hostname, () => {
+//   console.log(colors.yellow(`Server has started on port: ${PORT}, in ${process.env.NODE_ENV}`));
+// })
 
 const io = new Server(server, {
   cors: {
