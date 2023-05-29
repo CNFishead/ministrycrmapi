@@ -46,7 +46,7 @@ app.use(fileUpload());
 
 // This is to help with CORS issues, we dont want to allow anyone but a select group to access routes
 // app.use(cors(corsOptionsDelegate));
-app.use(cors());
+app.use(cors({ origin: "*" }));
 
 //init middlewares
 //sanitize data
