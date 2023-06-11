@@ -67,6 +67,17 @@ const MinistrySchema = new mongoose.Schema(
         ref: "Ministry",
       },
     ],
+    features: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Feature",
+      },
+    ],
+    // party responsible for subscription payments
+    payor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    }
   },
   { 
     timestamps: true,
