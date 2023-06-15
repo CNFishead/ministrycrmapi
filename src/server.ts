@@ -88,20 +88,14 @@ app.get("/", (req: Request, res: Response) => {
   res.send("API is running... Shepherds of Christ Ministries");
 });
 
-// attach the certificate and key to the server
-let server;
 
-if (process.env.NODE_ENV === "production") {
-  server = createHTTPSServer({ key: privateKey, cert: certificate }, app);
-} else {
-  server = createHTTPServer(app);
-}
+const server = app.listen(PORT, () =>
+  console.log(
+    `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold
+  )
+);
 
-const httpServer = server.listen(PORT, hostname, () => {
-  console.log(colors.yellow(`Server has started on port: ${PORT}, in ${process.env.NODE_ENV}`));
-});
-
-const io = new Server(httpServer, {
+const io = new Server(server, {
   cors: {
     origin: "*",
   },
