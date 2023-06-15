@@ -4,7 +4,6 @@
   "description": "API that handles all requests for ministry CRM's to be used with a frontend CRM tool",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "ts-node dist/server",
     "dev": "ts-node-dev src/server.ts",
     "build": "tsc"
