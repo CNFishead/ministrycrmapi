@@ -4,7 +4,7 @@
   "description": "API that handles all requests for ministry CRM's to be used with a frontend CRM tool",
   "main": "server.js",
   "scripts": {
-    "start": "ts-node dist/server",
+    "start": "ts-node dist/server.js",
     "dev": "ts-node-dev src/server.ts",
     "build": "tsc"
   },
