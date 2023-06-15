@@ -7,4 +7,4 @@ npm install
 npm run build
 
 # Copy built files to the appropriate location
-cp -R ./dist/* /var/www/html/
+# cp -R ./dist/* /var/www/html/
