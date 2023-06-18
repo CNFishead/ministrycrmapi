@@ -1,17 +1,21 @@
-import express from 'express'
-import authRoutes from './authRoutes'
-import userRoutes from './userRoutes'
-import uploadRoutes from './uploadRoutes'
-import ministryRoutes from './ministryRoutes'
-import memberRoutes from './memberRoutes'
+import express from "express";
+import authRoutes from "./authRoutes";
+import userRoutes from "./userRoutes";
+import uploadRoutes from "./uploadRoutes";
+import ministryRoutes from "./ministryRoutes";
+import memberRoutes from "./memberRoutes";
+import familyRoutes from "./familyRoutes";
 
-const router = express.Router()
+
+
+const router = express.Router();
 
 // Import all of our routes
-router.use('/auth', authRoutes)
-router.use('/user', userRoutes)
-router.use('/upload', uploadRoutes)
-router.use('/ministry', ministryRoutes)
-router.use('/member', memberRoutes)
+router.use("/auth", authRoutes);
+router.use("/family", familyRoutes);
+router.use("/user", userRoutes);
+router.use("/upload", uploadRoutes);
+router.use("/ministry", ministryRoutes);
+router.use("/member", memberRoutes);
 
 export default router;

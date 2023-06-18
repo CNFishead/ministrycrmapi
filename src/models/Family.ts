@@ -7,7 +7,7 @@ import FamilyType from "../types/FamilyType";
  * @param {ObjectId} contact - The contact of the family, this is a reference to a member object in the database
  * @param {String[]} notes - Notes about the family.
  * @param {String[]} tags  - An array of tags or labels to categorize the family, such as "volunteers," "youth group," or "elderly care."
- * 
+ *
  */
 const FamilySchema = new mongoose.Schema(
   {
@@ -16,6 +16,10 @@ const FamilySchema = new mongoose.Schema(
       required: [true, "Please add a name"],
       // trim
       trim: true,
+    },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
     members: [
       {
