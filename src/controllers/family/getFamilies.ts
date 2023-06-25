@@ -85,6 +85,14 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
         },
       },
       {
+        $lookup: {
+          from: "members",
+          localField: "members",
+          foreignField: "_id",
+          as: "members",
+        },
+      },
+      {
         $setWindowFields: { output: { totalCount: { $count: {} } } },
       },
       {

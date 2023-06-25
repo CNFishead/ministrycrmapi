@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 // import ObjectId from "mongoose";
 import { ObjectId } from "mongodb";
+import UserType from "./UserType";
 
 /**
  * @description - Interface for Family Schema
@@ -13,6 +14,7 @@ import { ObjectId } from "mongodb";
 export default interface FamilyType extends mongoose.Document {
   _id: string;
   name: string;
+  user: UserType;
   members: ObjectId[];
   contact: ObjectId;
   notes: string[];
