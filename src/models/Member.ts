@@ -68,7 +68,6 @@ const MemberSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      unique: true,
       trim: true,
     },
     phoneNumber: {
@@ -142,7 +141,7 @@ MemberSchema.pre("save", async function () {
 // enforces that the email string be lower case throughout, as if it isnt, a user with
 // test@email.com and a user Test@email.com do not match, and you can end up with duplicate emails..
 MemberSchema.pre("save", async function (next) {
-  this.email = this.email!.toLowerCase();
+  this.email = this.email?.toLowerCase();
   next();
 });
 
