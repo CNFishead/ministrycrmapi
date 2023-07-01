@@ -135,7 +135,12 @@ const MemberSchema = new mongoose.Schema(
 
 // creates the fullName field.
 MemberSchema.pre("save", async function () {
-  this.fullName = this.firstName + " " + this.lastName;
+  // last name could be undefined, so we check for that
+  if (this.lastName) {
+    this.fullName = `${this.firstName} ${this.lastName}`;
+  } else {
+    this.fullName = this.firstName;
+  }
 });
 
 // enforces that the email string be lower case throughout, as if it isnt, a user with
