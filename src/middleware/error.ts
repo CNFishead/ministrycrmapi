@@ -5,7 +5,7 @@
  *         for us.
  */
 
-export default (error: any, req: any, res: any, next: any) => {
+export default (error: any, req: any, res: any, next?: any) => {
   let err = { ...error };
   err.message = error.message;
 

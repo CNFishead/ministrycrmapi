@@ -15,7 +15,6 @@ import UserType from "../types/UserType";
  * @param {String} username - The users username
  * @param {String} phoneNumber - The users phone number
  * @param {String} role - The users role
- * @param {String} handler - The users handler (used for pretty urls)
  * @param {String} address - The users address
  * @param {String} city - The users city
  * @param {String} state - The users state
