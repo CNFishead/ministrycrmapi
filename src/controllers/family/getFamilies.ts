@@ -86,9 +86,10 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       },
       {
         $lookup: {
+          // lookup from the members collection all users who have a family id that matches the family id in the family collection
           from: "members",
-          localField: "members",
-          foreignField: "_id",
+          localField: "_id",
+          foreignField: "family",
           as: "members",
         },
       },

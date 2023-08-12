@@ -10,14 +10,14 @@ import mongoose from "mongoose";
  * @param       {object} req: The request object from the client
  * @param       {object} res: The response object from the server
  * @returns     {object[]} members: The members of the ministry
- * 
- * 
- * @author Austin Howard 
+ *
+ *
+ * @author Austin Howard
  * @since 1.0
  * @version 1.0
  * @lastModifiedBy - Austin Howard
  * @lastModified - 2023-06-11T11:37:23.000-05:00
- * 
+ *
  */
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response, next: any) => {
   try {
@@ -29,15 +29,15 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     // example: filterOptions = 'name;Austin,age;25'
     const filterOptionsObject = {} as any;
     if (req.query?.filterOptions) {
-      const filterOptionsArray = req.query?.filterOptions.split(',');
+      const filterOptionsArray = req.query?.filterOptions.split(",");
       filterOptionsArray.forEach((filterOption: string) => {
-        const [key, value] = filterOption.split(';');
+        const [key, value] = filterOption.split(";");
         // we need to typecast the value to a number if it is a number
         // this is because the value will be a string
         // we also need to check for boolean values
-        if (value === 'true') {
+        if (value === "true") {
           filterOptionsObject[key] = true;
-        } else if (value === 'false') {
+        } else if (value === "false") {
           filterOptionsObject[key] = false;
         } else {
           filterOptionsObject[key] = isNaN(Number(value)) ? value : Number(value);
@@ -47,12 +47,12 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     /* sort */
     const sortObject = {} as any;
     if (req.query?.sortOptions) {
-      const [key, value] = req.query?.sortOptions.split(';');
-      sortObject[key] = value === '1' ? 1 : -1;
+      const [key, value] = req.query?.sortOptions.split(";");
+      sortObject[key] = value === "1" ? 1 : -1;
     } else {
       sortObject.displayDate = -1;
     }
-    if(!ministryId) return res.status(400).json({ message: "Ministry ID is required", success: false });
+    if (!ministryId) return res.status(400).json({ message: "Ministry ID is required", success: false });
     // find the members we are searching for, through the ministry thats passed in
     const members = await Member.aggregate([
       {
@@ -66,19 +66,19 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
                       {
                         fullName: {
                           $regex: req.query?.keyword,
-                          $options: 'i',
+                          $options: "i",
                         },
                       },
                       {
                         videoDescription: {
                           $regex: req.query?.keyword,
-                          $options: 'i',
+                          $options: "i",
                         },
                       },
                       {
-                        'cata.name': {
+                        "cata.name": {
                           $regex: req.query?.keyword,
-                          $options: 'i',
+                          $options: "i",
                         },
                       },
                     ],
@@ -95,8 +95,22 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
                 [{}]),
           ],
         },
-      }
-    ])
+      },
+      {
+        $lookup: {
+          from: "families",
+          localField: "family",
+          foreignField: "_id",
+          as: "family",
+        },
+      },
+      {
+        $unwind: {
+          path: "$family",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+    ]);
 
     // return the members
     return res.status(200).json({ message: "Members found", success: true, data: members });

@@ -72,7 +72,6 @@ const MemberSchema = new mongoose.Schema(
     },
     phoneNumber: {
       type: String,
-      required: true,
     },
     location: {
       address: {

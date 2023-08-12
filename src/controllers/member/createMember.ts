@@ -45,7 +45,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     if (age < 18) {
       // if the family id is not provided, then we need to throw an error.
       if (!req.body.family) {
-        return res.status(400).json({ message: "Family Id is required, when adding a member under the age of 18", success: false });
+        return res.status(400).json({ message: "Association to a Family is required, when adding a member under the age of 18", success: false });
       }
       // if the family id is provided, then we need to make sure that the family exists.
       const family = await Family.findById(req.body.family).populate("members");
