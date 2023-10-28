@@ -1,12 +1,12 @@
 import { Response } from "express";
 import asyncHandler from "../../middleware/asyncHandler";
 import error from "../../middleware/error";
-import Member from "../../models/Member";
 import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
 import mongoose from "mongoose";
 import parseFilterOptions from "../../utils/parseFilterOptions";
 import parseQueryKeywords from "../../utils/parseQueryKeywords";
 import parseSortString from "../../utils/parseSortString";
+import Ministry from "../../models/Ministry";
 
 /**
  * @description - This function will return all members for a ministry, and all sub ministry members.
@@ -26,15 +26,18 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
   try {
     const pageSize = Number(req.query?.limit) || 10;
     const page = Number(req.query?.pageNumber) || 1;
-    const ministryId = req.params?.ministryId;
+    const ministryId = req.params?.id;
     if (!ministryId) return res.status(400).json({ message: "Ministry ID is required", success: false });
+
     // find the members we are searching for, through the ministry thats passed in
-    const members = await Member.aggregate([
+    const ministry = await Ministry.aggregate([
       {
         $match: {
-          ministry: new mongoose.Types.ObjectId(ministryId),
+          ownerMinistry: new mongoose.Types.ObjectId(ministryId),
           $and: [{ ...parseFilterOptions(req.query?.filterOptions) }],
-          $or: [...parseQueryKeywords(["fullName", "email", "phoneNumber", "tags"], req.query?.keyword)],
+          $or: [
+            ...parseQueryKeywords(["name", "description", "[ministryType]", "leader", "members"], req.query?.keyword),
+          ],
         },
       },
       {
@@ -42,15 +45,15 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       },
       {
         $lookup: {
-          from: "families",
-          localField: "family",
+          from: "members",
+          localField: "leader",
           foreignField: "_id",
-          as: "family",
+          as: "leader",
         },
       },
       {
         $unwind: {
-          path: "$family",
+          path: "$leader",
           preserveNullAndEmptyArrays: true,
         },
       },
@@ -65,13 +68,13 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     return res.status(200).json({
       message: "Members found",
       success: true,
-      members,
+      ministries: ministry,
       pageNumber: page,
       // for total number of pages we have a value called totalCount in the output field of the setWindowFields stage
       // we need to target one document in the output array, so we use the 0 index, and then access the totalCount property
       // if we don't have a totalCount, we return 0
-      pages: Math.ceil(members.length > 0 ? members[0].totalCount / pageSize : 0),
-      totalCount: members.length > 0 ? members[0].totalCount : 0,
+      pages: Math.ceil(ministry.length > 0 ? ministry[0].totalCount / pageSize : 0),
+      totalCount: ministry.length > 0 ? ministry[0].totalCount : 0,
       // pages: Math.ceil(count / pageSize),
       prevPage: page - 1,
       nextPage: page + 1,

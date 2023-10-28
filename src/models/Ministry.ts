@@ -1,4 +1,5 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
+import MinistryType from "../types/MinistryType";
 
 /**
  * @description - This schema defines the ministry object in the database, this is used to store all information pertaining to a ministry
@@ -12,14 +13,15 @@ const mongoose = require("mongoose");
  * @param {Array} announcements - The announcements of the ministry
  * @param {Array} subMinistries - The classes of the ministry, i.e. bible study, sunday school, etc. each sub ministry is a reference to a ministry object in the database
  *                                so each sub ministry can have its own members, events, announcements, etc.
- * 
- * 
+ *
+ *
  *
  */
 const MinistrySchema = new mongoose.Schema(
   {
     name: {
       type: String,
+      required: [true, "Please add a name"],
     },
     description: {
       type: String,
@@ -33,6 +35,7 @@ const MinistrySchema = new mongoose.Schema(
     leader: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      required: [true, "Please add a leader"],
     },
     members: [
       {
@@ -44,7 +47,6 @@ const MinistrySchema = new mongoose.Schema(
           type: String,
           enum: ["member", "leader", "admin"],
           default: "member",
-          
         },
       },
     ],
@@ -55,18 +57,12 @@ const MinistrySchema = new mongoose.Schema(
       },
     ],
     announcements: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Announcement",
-
-    }
-    ],
-    subMinistries: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Ministry",
+        ref: "Announcement",
       },
     ],
+
     features: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -77,12 +73,19 @@ const MinistrySchema = new mongoose.Schema(
     payor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-    }
+    },
+    // ownerMinistry is the ministry that owns this ministry
+    // this means that this ministry is a sub ministry of the ownerMinistry
+    // the ownerMinistry can be the main ministry, or it can be a sub ministry
+    // of the main ministry
+    ownerMinistry: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Ministry",
+    },
   },
-  { 
+  {
     timestamps: true,
   }
 );
 
-export default mongoose.model("Ministry", MinistrySchema);
- 
+export default mongoose.model<MinistryType>("Ministry", MinistrySchema);

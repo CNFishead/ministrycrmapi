@@ -41,7 +41,7 @@ const protect = (routes?: any) => {
         next();
       } catch (e) {
         //console.log(e)
-        return res.status(403).json({ message: 'Not authorized, token failed' });
+        return res.status(401).json({ message: 'Not authorized, token failed' });
       }
     }
     if (!token) {
