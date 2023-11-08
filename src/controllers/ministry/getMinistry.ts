@@ -1,20 +1,20 @@
-import asyncHandler from '../../middleware/asyncHandler';
-import User from '../../models/User';
-import { Response, Request } from 'express';
-import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
-import Ministry from '../../models/Ministry';
-import mongoose from 'mongoose';
+import asyncHandler from "../../middleware/asyncHandler";
+import User from "../../models/User";
+import { Response, Request } from "express";
+import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
+import Ministry from "../../models/Ministry";
+import mongoose from "mongoose";
 /**
  * @description: This function returns the result of a ministry object to the frontend
  * @param       {object} req: The request object from the client
  * @param       {object} res: The response object from the server
  * @returns     {object} user: The user object we need to return to the front
- * 
+ *
  * @author - Austin Howard
  * @since - 1.0
  * @version 1.0
  * @lastModified - 2023-05-20T17:30:05.000-05:00
- * 
+ *
  */
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   try {
@@ -26,7 +26,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
       },
       {
         $lookup: {
-          from: "users",
+          from: "members",
           localField: "leader",
           foreignField: "_id",
           as: "leader",
@@ -34,7 +34,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
       },
       {
         $lookup: {
-          from: "users",
+          from: "members",
           localField: "members",
           foreignField: "_id",
           as: "members",
@@ -45,18 +45,17 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
           path: "$leader",
           preserveNullAndEmptyArrays: true,
         },
-      }
+      },
     ]);
-    if(!ministry[0]) {
+    if (!ministry[0]) {
       return res.status(404).json({ message: "Ministry not found" });
     }
     return res.json({
       success: true,
       ministry: ministry[0],
     });
-
   } catch (error: any) {
     console.log(error);
-    res.status(500).json({ message: `Something Went Wrong: ${error.message}` });   
+    res.status(500).json({ message: `Something Went Wrong: ${error.message}` });
   }
-})
+});

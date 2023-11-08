@@ -66,7 +66,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
 
     // return the members
     return res.status(200).json({
-      message: "Members found",
+      message: "Ministries found",
       success: true,
       ministries: ministry,
       pageNumber: page,

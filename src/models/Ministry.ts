@@ -21,7 +21,7 @@ const MinistrySchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Please add a name"],
+      required: [true, "Please add a Ministry name"],
     },
     description: {
       type: String,
@@ -34,22 +34,9 @@ const MinistrySchema = new mongoose.Schema(
     },
     leader: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Member",
       required: [true, "Please add a leader"],
     },
-    members: [
-      {
-        user: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "User",
-        },
-        role: {
-          type: String,
-          enum: ["member", "leader", "admin"],
-          default: "member",
-        },
-      },
-    ],
     events: [
       {
         type: mongoose.Schema.Types.ObjectId,

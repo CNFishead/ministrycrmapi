@@ -36,7 +36,5 @@ export default (array: string[], key: string) => {
       parsed.push({ [value]: { $regex: key.trim(), $options: "i" } });
     }
   });
-
-  console.log(parsed);
   return parsed;
 };

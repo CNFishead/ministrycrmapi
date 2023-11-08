@@ -25,7 +25,11 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     console.log(req.body);
     if (!req.params?.memberId) return res.status(400).json({ message: "Member ID is required", success: false });
     if (!req.body?.member) return res.status(400).json({ message: "Member object is required", success: false });
-    const member = await Member.findByIdAndUpdate(req.params?.memberId, { ...req.body?.member }, { runValidators: true });
+    const member = await Member.findByIdAndUpdate(
+      req.params?.memberId,
+      { ...req.body?.member },
+      { runValidators: true, new: true }
+    );
     await member?.save();
     if (!member) return res.status(404).json({ message: "Member not found", success: false });
     return res.status(200).json({ message: "Member updated", success: true, data: member });
