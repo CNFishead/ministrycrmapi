@@ -32,7 +32,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     const members = await Member.aggregate([
       {
         $match: {
-          ministry: new mongoose.Types.ObjectId(ministryId),
+          mainMinistry: new mongoose.Types.ObjectId(ministryId),
           $and: [{ ...parseFilterOptions(req.query?.filterOptions) }],
           $or: [...parseQueryKeywords(["fullName", "email", "phoneNumber", "tags"], req.query?.keyword)],
         },

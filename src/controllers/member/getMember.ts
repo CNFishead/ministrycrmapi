@@ -4,6 +4,9 @@ import Member from "../../models/Member";
 import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
 import { Response } from "express";
 import error from "../../middleware/error";
+import parseSortString from "../../utils/parseSortString";
+import parseFilterOptions from "../../utils/parseFilterOptions";
+import parseQueryKeywords from "../../utils/parseQueryKeywords";
 
 /**
  * @description - Returns information on a single user
@@ -23,6 +26,52 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       {
         $match: {
           _id: new mongoose.Types.ObjectId(req.params?.memberId),
+          $and: [{ ...parseFilterOptions(req.query?.filterOptions) }],
+          $or: [...parseQueryKeywords(["blogTitle", "slug", "description", "tags", "content"], req.query?.keyword)],
+        },
+      },
+      {
+        $setWindowFields: { output: { totalCount: { $count: {} } } },
+      },
+      {
+        $sort: {
+          ...parseSortString(req.query?.sortBy, "createdAt;-1"),
+        },
+      },
+      {
+        $skip: Number(req.query?.limit) * (Number(req.query?.pageNumber) - 1),
+      },
+      {
+        $limit: Number(req.query?.limit),
+      },
+      {
+        $lookup: {
+          from: "families",
+          localField: "family",
+          foreignField: "_id",
+          as: "family",
+        },
+      },
+      {
+        $unwind: {
+          path: "$family",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "ministries",
+          localField: "ministry",
+          foreignField: "_id",
+          as: "ministry",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+              },
+            },
+          ],
         },
       },
     ]);

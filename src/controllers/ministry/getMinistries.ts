@@ -36,12 +36,21 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
           ownerMinistry: new mongoose.Types.ObjectId(ministryId),
           $and: [{ ...parseFilterOptions(req.query?.filterOptions) }],
           $or: [
-            ...parseQueryKeywords(["name", "description", "[ministryType]", "leader", "members"], req.query?.keyword),
+            ...parseQueryKeywords(
+              ["name", "description", "[ministryType.name]", "leader", "members"],
+              req.query?.keyword
+            ),
           ],
         },
       },
       {
         $setWindowFields: { output: { totalCount: { $count: {} } } },
+      },
+      {
+        $skip: pageSize * (page - 1),
+      },
+      {
+        $limit: pageSize,
       },
       {
         $lookup: {

@@ -52,7 +52,14 @@ const MemberSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Family",
     },
-    ministry: {
+    ministry: [
+      {
+        // reference to what ministry this member belongs to
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Ministry",
+      },
+    ],
+    mainMinistry: {
       // reference to what ministry this member belongs to
       type: mongoose.Schema.Types.ObjectId,
       ref: "Ministry",

@@ -25,8 +25,6 @@ const FamilySchema = new mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Member",
-        // makes sure the same member is not added twice
-        unique: true,
       },
     ],
     contact: {

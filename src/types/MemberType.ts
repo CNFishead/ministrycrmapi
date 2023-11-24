@@ -12,7 +12,8 @@ import { ObjectId } from "mongoose";
 export default interface MemberType extends mongoose.Document {
   firstName: string;
   lastName: string;
-  ministry: ObjectId;
+  ministry: ObjectId[]; // user can be in multiple ministries
+  mainMinistry: ObjectId; // user can only belong to one main ministry, i.e. the church.
   profileImageUrl: string;
   sex: string;
   email: string;

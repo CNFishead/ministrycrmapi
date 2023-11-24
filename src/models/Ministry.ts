@@ -35,7 +35,6 @@ const MinistrySchema = new mongoose.Schema(
     leader: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Member",
-      required: [true, "Please add a leader"],
     },
     events: [
       {
