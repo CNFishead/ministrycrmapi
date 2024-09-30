@@ -42,7 +42,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
       return res.status(400).json({ message: "This ministry has sub ministries, please delete them first" });
     }
     // delete the ministry
-    await ministry.remove();
+    await Ministry.findByIdAndDelete(ministryId);
     // return
     return res.status(201).json({ success: true });
   } catch (err: any) {

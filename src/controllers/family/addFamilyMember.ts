@@ -33,7 +33,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       });
     }
     // check if the user is the owner of the family
-    if (family?.user?.toString() !== req.user?._id.toString()) {
+    if (family?.user?.toString() !== (req.user as { _id: string })._id.toString()) {
       // return a 401 if they are not
       return res.status(401).json({
         success: false,

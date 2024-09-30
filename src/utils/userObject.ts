@@ -10,7 +10,7 @@ import generateToken from "./generateToken";
  *  @throws:     If the user is not found or if the user is not active
  *
  */
-export default async (id: any) => { 
+export default async (id: any) => {
   try {
     const user = await User.aggregate([
       {
@@ -20,34 +20,19 @@ export default async (id: any) => {
       },
       // use the id of the user to find the ministry that the user is a leader of
       {
+        // look in the ministries table collection for the first instance where the user is the leader
         $lookup: {
           from: "ministries",
           localField: "_id",
           foreignField: "leader",
           as: "ministry",
-          pipeline: [
-            {
-              $lookup:{
-                from: "users",
-                localField: "leader",
-                foreignField: "_id",
-                as: "leader",
-              }
-            },
-            {
-              $unwind: {
-                path: "$leader",
-                preserveNullAndEmptyArrays: true,
-            }
-            },
-          ],
         },
       },
       {
         $unwind: {
           path: "$ministry",
           preserveNullAndEmptyArrays: true,
-        }
+        },
       },
       {
         $project: {
@@ -55,10 +40,10 @@ export default async (id: any) => {
           lastName: 1,
           email: 1,
           ministry: 1,
-          role:1,
+          role: 1,
           profileImageUrl: 1,
         },
-      }
+      },
     ]);
     if (!user[0]) {
       throw new Error("User not found");

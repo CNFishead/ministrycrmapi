@@ -34,11 +34,11 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       {
         $match: {
           ownerMinistry: new mongoose.Types.ObjectId(ministryId),
-          $and: [{ ...parseFilterOptions(req.query?.filterOptions) }],
+          $and: [{ ...parseFilterOptions(req.query?.filterOptions as string) }],
           $or: [
             ...parseQueryKeywords(
               ["name", "description", "[ministryType.name]", "leader", "members"],
-              req.query?.keyword
+              req.query?.keyword as string
             ),
           ],
         },
@@ -68,10 +68,10 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       },
       {
         $sort: {
-          ...parseSortString(req.query?.sortString, "createdAt;-1"),
+          ...parseSortString(req.query?.sortString as string, "createdAt;-1"),
         },
       },
-    ]);
+    ]); 
 
     // return the members
     return res.status(200).json({

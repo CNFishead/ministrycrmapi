@@ -9,6 +9,7 @@ import mongoose from "mongoose";
  * @lastModified - 2023-06-11T16:20:26.000-05:00
  */
 export default interface UserType extends mongoose.Document {
+  _id: string;
   firstName: string;
   lastName: string;
   profileImageUrl: string;

@@ -3,6 +3,7 @@ import Ministry from "../../models/Ministry";
 import User from "../../models/User";
 import { Response, Request } from "express";
 import userObject from "../../utils/userObject";
+import Member from "../../models/Member";
 /**
  * @description: this function registers a new account to the database.
  *               It will check if the email is already in use, if it is, it will throw an error
@@ -22,7 +23,6 @@ import userObject from "../../utils/userObject";
  */
 export default asyncHandler(async (req: Request, res: Response) => {
   try {
-    console.log(req.body);
     // first check if the required fields are in the request body
     const { email, password, firstName, lastName } = req.body;
     if (!email || !password || !firstName || !lastName) {
@@ -41,13 +41,24 @@ export default asyncHandler(async (req: Request, res: Response) => {
     const newUser = await User.create({
       ...req.body,
     });
+
+    const member = await Member.create({
+      firstName: newUser.firstName,
+      lastName: newUser.lastName,
+      email: newUser.email,
+      user: newUser._id,
+      ...req.body,
+    });
+
+
     // save the user to the database
     await newUser.save();
 
+    await member.save();
     // on registration we need to create a ministry object for the user who created the account
     // pass in the ministry object from the request body
     await Ministry.create({
-      leader: newUser._id,
+      leader: member._id,
       ...req.body.ministry,
     });
     // return the user object to the front

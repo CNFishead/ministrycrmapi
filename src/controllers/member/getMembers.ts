@@ -25,20 +25,28 @@ import parseSortString from "../../utils/parseSortString";
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response, next: any) => {
   try {
     const pageSize = Number(req.query?.limit) || 10;
-    const page = Number(req.query?.pageNumber) || 1;
-    const ministryId = req.params?.ministryId;
+    const page = Number(req.query?.pageNumber as string) || 1;
+    const ministryId = req.params?.ministryId as string;
     if (!ministryId) return res.status(400).json({ message: "Ministry ID is required", success: false });
     // find the members we are searching for, through the ministry thats passed in
     const members = await Member.aggregate([
       {
         $match: {
           mainMinistry: new mongoose.Types.ObjectId(ministryId),
-          $and: [{ ...parseFilterOptions(req.query?.filterOptions) }],
-          $or: [...parseQueryKeywords(["fullName", "email", "phoneNumber", "tags"], req.query?.keyword)],
+          $and: [{ ...parseFilterOptions(req.query?.filterOptions as string) }],
+          $or: [...parseQueryKeywords(["fullName", "email", "phoneNumber", "tags"], req.query?.keyword as string)],
         },
       },
       {
         $setWindowFields: { output: { totalCount: { $count: {} } } },
+      },
+      {
+        $skip: (page - 1) * pageSize,
+      },
+      {
+        $sort: {
+          ...parseSortString(req.query?.sortString as string, "createdAt;-1"),
+        },
       },
       {
         $lookup: {
@@ -55,8 +63,37 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
         },
       },
       {
-        $sort: {
-          ...parseSortString(req.query?.sortString, "createdAt;-1"),
+        $lookup: {
+          // look for all the ministries that this member is a part of
+          from: "ministries",
+          localField: "_id",
+          foreignField: "members",
+          as: "numberOfMinistries",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          // find all ministries that this member is a leader of
+          from: "ministries",
+          localField: "_id",
+          foreignField: "leader",
+          as: "numberOfLeaderMinistries",
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+              },
+            },
+          ],
         },
       },
     ]);

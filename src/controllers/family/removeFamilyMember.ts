@@ -41,7 +41,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       });
     }
     // remove the member from the family
-    family.members = family.members.filter((member) => member.toString() !== req.params?.memberId.toString());
+    family.members = family.members.filter((member: any) => member.toString() !== req.params?.memberId.toString());
     // save the family
     await family.save();
     // return the family

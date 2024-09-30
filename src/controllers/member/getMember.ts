@@ -26,8 +26,8 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       {
         $match: {
           _id: new mongoose.Types.ObjectId(req.params?.memberId),
-          $and: [{ ...parseFilterOptions(req.query?.filterOptions) }],
-          $or: [...parseQueryKeywords(["blogTitle", "slug", "description", "tags", "content"], req.query?.keyword)],
+          $and: [{ ...parseFilterOptions(req.query?.filterOptions as string) }],
+          $or: [...parseQueryKeywords(["blogTitle", "slug", "description", "tags", "content"], req.query?.keyword as string)],
         },
       },
       {
@@ -35,7 +35,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       },
       {
         $sort: {
-          ...parseSortString(req.query?.sortBy, "createdAt;-1"),
+          ...parseSortString(req.query?.sortBy as string, "createdAt;-1"),
         },
       },
       {

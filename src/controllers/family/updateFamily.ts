@@ -19,8 +19,7 @@ import Family from "../../models/Family";
  * @lastModified 2023-06-25T16:33:05.000-05:00
  */
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  try {
-    console.log(req.body);
+  try { 
     // find the family object needing to be updated
     const family = await Family.findById(req.params?.id);
     // check if it exists
@@ -53,7 +52,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     // return the updated family object
     return res.status(200).json({
       success: true,
-      family: updatedFamily,
+      family: updatedFamily, 
     });
   } catch (e) {
     console.log(e);

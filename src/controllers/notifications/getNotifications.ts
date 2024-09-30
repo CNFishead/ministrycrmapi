@@ -21,7 +21,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
       {
         $match: {
           userTo: req.user._id,
-          ...parseFilterOptions(filterOptions),
+          ...parseFilterOptions(filterOptions as string),
         },
       },
       {
@@ -74,7 +74,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
       },
       {
         $sort: {
-          ...parseSortString(sortOptions, "createdAt;-1"),
+          ...parseSortString(sortOptions as string, "createdAt;-1"),
         },
       },
     ]);

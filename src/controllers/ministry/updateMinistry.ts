@@ -18,8 +18,7 @@ import Ministry from "../../models/Ministry";
  *
  */
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response, next: any) => {
-  try {
-    console.log(req.body);
+  try { 
     const updatedMinistry = await Ministry.findByIdAndUpdate(
       req.params?.id,
       { ...req.body },

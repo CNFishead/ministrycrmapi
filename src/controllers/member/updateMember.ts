@@ -21,8 +21,6 @@ import { Response } from "express";
  */
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response, next: any) => {
   try {
-    console.log(`req.body: `);
-    console.log(req.body);
     if (!req.params?.memberId) return res.status(400).json({ message: "Member ID is required", success: false });
     if (!req.body?.member) return res.status(400).json({ message: "Member object is required", success: false });
     const member = await Member.findByIdAndUpdate(
