@@ -71,7 +71,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
           ...parseSortString(req.query?.sortString as string, "createdAt;-1"),
         },
       },
-    ]); 
+    ]);
 
     // return the members
     return res.status(200).json({

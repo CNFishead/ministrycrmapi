@@ -3,6 +3,7 @@ import asyncHandler from "../../middleware/asyncHandler";
 import error from "../../middleware/error";
 import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
 import Event from "../../models/Event";
+import Ministry from "../../models/Ministry";
 
 /**
  * @description updates an object in the database
@@ -18,7 +19,20 @@ import Event from "../../models/Event";
  */
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    console.log(req.body);
+    if (req.body.ministry) {
+      try {
+        // attempting to parse json object
+        req.body.ministry = JSON.parse(req.body.ministry);
+      } catch (error) {
+        console.log(`parsing failed, ${req.body.ministry}`);
+      }
+    } else {
+      // if there is no ministry, set it to the req.user ministry where they are the leader
+      const ministry = await Ministry.findOne({ leader: req.user._id });
+      if (!ministry) return res.status(400).json({ message: "could not find owner ministry" });
+      req.body.ministry = ministry._id;
+    }
+
     // find the object needing to be updated
     await Event.findByIdAndUpdate(
       req.params?.id,

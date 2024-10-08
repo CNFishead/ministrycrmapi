@@ -9,7 +9,15 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
   try {
     // Get the event data from the request body
     const eventData = req.body;
-    eventData.ministry = JSON.parse(eventData.ministry);
+    // check if 'ministry' is part of the req.body if it is, attempt to parse it
+    if (eventData.ministry) {
+      try {
+        // attempting to parse json object
+        eventData.ministry = JSON.parse(eventData.ministry);
+      } catch (error) {
+        console.log(`parsing failed, ${eventData.ministry}`);
+      }
+    }
 
     // if a ministry is not provided, set it to the user's ministry
     if (!eventData.ministry) {
