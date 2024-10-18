@@ -7,6 +7,7 @@ import mongoose from "mongoose";
 import parseFilterOptions from "../../utils/parseFilterOptions";
 import parseQueryKeywords from "../../utils/parseQueryKeywords";
 import parseSortString from "../../utils/parseSortString";
+import { parse } from "path";
 
 /**
  * @description - This function will return all members for a ministry, and all sub ministry members.
@@ -34,7 +35,10 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
         $match: {
           mainMinistry: new mongoose.Types.ObjectId(ministryId),
           $and: [{ ...parseFilterOptions(req.query?.filterOptions as string) }],
-          $or: [...parseQueryKeywords(["fullName", "email", "phoneNumber", "tags"], req.query?.keyword as string)],
+          $or: [
+            ...parseQueryKeywords(["fullName", "email", "phoneNumber", "tags"], req.query?.keyword as string),
+            { ...parseFilterOptions(req.query?.includeOptions as string) },
+          ],
         },
       },
       {
@@ -45,7 +49,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       },
       {
         $sort: {
-          ...parseSortString(req.query?.sortString as string, "createdAt;-1"),
+          ...parseSortString(req.query?.sortBy as string, "createdAt;-1"),
         },
       },
       {

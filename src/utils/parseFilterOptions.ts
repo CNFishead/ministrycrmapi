@@ -16,7 +16,8 @@ export default (filterOptionsString: string) => {
   if (!filterOptionsString) return {};
 
   const filterOptionsObject = {} as { [key: string]: any };
-  const filterOptionsArray = filterOptionsString.split("|");
+  // split and remove empty strings
+  const filterOptionsArray = filterOptionsString.split("|").filter((option) => option !== "");
   // console.log(filterOptionsArray);
 
   filterOptionsArray.forEach((filterOption) => {
@@ -69,9 +70,11 @@ const parseValueRecursively = (parsedValue: any) => {
         if (typeof opValue === "object" && opValue !== null) {
           acc[opKey] = parseValueRecursively(opValue);
         } else {
-          const isValidDate = moment(opValue as string).isValid();
+          const isValidDate = moment(opValue as string, true).isValid();
           const isNumber = !isNaN(Number(opValue));
-
+          if (opKey === "$elemMatch" && typeof opValue === "string") {
+            acc[opKey] = { $eq: opValue }; // Handle simple string equality for $elemMatch
+          }
           if (isValidDate) {
             acc[opKey] = moment(opValue as any).toDate();
           } else if (isNumber) {

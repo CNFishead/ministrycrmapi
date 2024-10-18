@@ -47,12 +47,19 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
         },
       },
     ]);
+
+    // if the leader object is null, check try to find the leader object through the user model
+    if (!ministry[0].leader) {
+      const ministryLeader = await Ministry.findById(req.params?.id);
+      const leader = await User.findById(ministryLeader?.leader);
+      ministry[0].leader = leader;
+    }
     if (!ministry[0]) {
       return res.status(404).json({ message: "Ministry not found" });
     }
     return res.json({
       success: true,
-      ministry: ministry[0],
+      ministry: { ...ministry[0] },
     });
   } catch (error: any) {
     console.log(error);

@@ -1,6 +1,7 @@
 node_modules
 /node_modules
 /dist
+/public/images
 
 # /client/build
 .DS_Store

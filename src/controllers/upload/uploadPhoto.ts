@@ -1,14 +1,13 @@
 import asyncHandler from "../../middleware/asyncHandler";
-import User from "../../models/User";
 import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
-import { Response, Request } from "express";
-import error from "../../middleware/error";
+import { Response } from "express";
 import slugify from "slugify";
 import path from "path";
-import sharp from "sharp";
-import UserType from "../../types/UserType";
-import fs from "fs";
 import { UploadedFile } from "express-fileupload";
+import Ministry from "../../models/Ministry";
+import MinistryType from "../../types/MinistryType";
+import error from "../../middleware/error";
+import fs from "fs";
 
 /**
  * @description: This function will return the full user details to the front
@@ -24,6 +23,7 @@ import { UploadedFile } from "express-fileupload";
  */
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   try {
+    console.log(`running uploadPhoto.ts`);
     if (!req.files) {
       return res.status(400).json({ message: `Please upload a file` });
     }
@@ -42,53 +42,37 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
 
     // ***NOTE*** Path.parse() returns a {}, youll need to .name to access {name: String} for slugify
     const fileName = path.parse(file.name);
+    console.log(req.body);
 
+    const ministry = (await Ministry.findOne({ name: req.body.ministryName })) as MinistryType;
+
+    if (!ministry) {
+      return res.status(400).json({ message: `Ministry not found` });
+    }
+
+    // slugify the ministry name
+    const ministryName = slugify(`${ministry.name}`, { lower: true });
     // Create custom filename
     file.name = slugify(`${fileName.name}`, { lower: true }) + "-photo.png";
     //console.log(`slugged Name: ${file.name}`)
     // move file to the public images folder
-    file.mv(`public/images/${file.name}`, async (err: any) => {
+    // check the folder exists
+    fs.mkdirSync(`public/images/${ministryName}`, { recursive: true });
+    file.mv(`public/images/${ministryName}/${file.name}`, async (err: any) => {
       if (err) {
         return res.status(500).json({ message: `Problem with file being moved to filesystem` });
       }
     });
-    //---------------------------------------------------------------------//
-    //   Lines 71-82 make it so the uploaded image fits inside whatever the
-    //   container size is. So that is doesn't cut off the image.
-    //---------------------------------------------------------------------//
-    // let width = await sharp(file.data)
-    //   .metadata()
-    //   .then((metadata: any) => {
-    //     return metadata.width > 300 ? 300 : metadata.width < 300 ? 300 : 300
-    //   })
-    // //console.log('width: ', width)
-    // let height = await sharp(file.data)
-    //   .metadata()
-    //   .then((metadata) => {
-    //     // metadata.height = null
-    //     return metadata.height
-    //   })
-    // //console.log(`height: ${height}`)
-    // const sharpz = await sharp(file.data)
-    //   .resize(width, height)
-    //   .toFormat('webp', { palette: true }) //png or webp instead of jpeg
-    //   .toFile(`public/images/${file.name}`)
-
-    //console.log('sharpz: ', sharpz)
-
-    const user = (await User.findOne({ _id: req.user._id })) as UserType;
-    // console.log(user)
-    const username = user.username;
 
     // use the hostname to get the full url
     const hostname = req.headers!.host;
     // protocol is http or https
     const protocol = req.protocol;
-    const imageUrl = `${protocol}://${hostname}/images/${file.name}`;
+    const imageUrl = `${protocol}://${hostname}/images/${ministryName}/${file.name}`;
 
-    res.json({ imageUrl, message: `Image Uploaded successfully`, filename: file.name });
-  } catch (error: any) {
-    console.log(error);
-    error(error, res);
+    return res.json({ imageUrl, message: `Image Uploaded successfully`, filename: file.name });
+  } catch (err: any) {
+    console.log(err);
+    error(err, req, res);
   }
 });

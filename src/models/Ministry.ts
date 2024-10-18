@@ -13,9 +13,13 @@ import MinistryType from "../types/MinistryType";
  * @param {Array} announcements - The announcements of the ministry
  * @param {Array} subMinistries - The classes of the ministry, i.e. bible study, sunday school, etc. each sub ministry is a reference to a ministry object in the database
  *                                so each sub ministry can have its own members, events, announcements, etc.
- *
- *
- *
+ * @param {Array} features - The features of the ministry, which will be different for each ministry
+ * @param {User} payor - The user who is responsible for the subscription payments for the ministry
+ * @param {Ministry} ownerMinistry - The ministry that owns this ministry, this means that this ministry is a sub ministry of the ownerMinistry
+ *                                  the ownerMinistry can be the main ministry, or it can be a sub ministry of the main ministry
+ * @param {Date} createdAt - The date the ministry was created
+ * @param {Date} updatedAt - The date the ministry was last updated
+ * @param {String} donationLink - The link to donate to the ministry
  */
 const MinistrySchema = new mongoose.Schema(
   {
@@ -30,6 +34,9 @@ const MinistrySchema = new mongoose.Schema(
       type: String,
     },
     ministryType: {
+      type: String,
+    },
+    donationLink: {
       type: String,
     },
     leader: {

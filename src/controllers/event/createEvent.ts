@@ -7,6 +7,7 @@ import Ministry from "../../models/Ministry";
 
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   try {
+    console.log(req.body);
     // Get the event data from the request body
     const eventData = req.body;
     // check if 'ministry' is part of the req.body if it is, attempt to parse it

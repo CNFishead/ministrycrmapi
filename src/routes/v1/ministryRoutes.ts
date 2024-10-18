@@ -7,10 +7,11 @@ import getMinistries from "../../controllers/ministry/getMinistries";
 import deleteMinistry from "../../controllers/ministry/deleteMinistry";
 const router = express.Router();
 
-// Import all of our routes
+router.route("/:id").get(getMinistry);
+
 router.use(protect());
 router.route("/:id/subministries/:subministryId").delete(deleteMinistry);
 router.route("/:id/subministries").get(getMinistries).delete(deleteMinistry);
-router.route("/:id").get(getMinistry).put(updateMinistry).post(createMinistry);
+router.route("/:id").put(updateMinistry).post(createMinistry);
 
 export default router;
