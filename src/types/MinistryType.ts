@@ -1,5 +1,6 @@
 export default interface MinistryType {
   _id: string;
+  user: string;
   name: string;
   description: string;
   donationLink: string;

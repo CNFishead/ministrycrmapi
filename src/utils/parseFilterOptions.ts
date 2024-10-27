@@ -13,7 +13,7 @@ import mongoose from "mongoose";
  * @lastModified 2023-07-19T12:45:31.000-05:00
  */
 export default (filterOptionsString: string) => {
-  if (!filterOptionsString) return {};
+  if (!filterOptionsString) return [{}];
 
   const filterOptionsObject = {} as { [key: string]: any };
   // split and remove empty strings
@@ -58,7 +58,7 @@ export default (filterOptionsString: string) => {
     }
   });
   // console.log(filterOptionsObject);
-  return filterOptionsObject;
+  return [filterOptionsObject];
 };
 // Helper function for recursive parsing
 const parseValueRecursively = (parsedValue: any) => {

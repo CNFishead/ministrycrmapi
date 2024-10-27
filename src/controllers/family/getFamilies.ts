@@ -27,22 +27,26 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
   try {
     const pageSize = Number(req.query?.limit) || 10;
     const page = Number(req.query?.pageNumber) || 1;
-    const families = await Family.aggregate([
+    // Generate the keyword query
+    const keywordQuery = parseQueryKeywords(["name", "tags"], req.query?.keyword as string);
+
+    // Generate the filter options for inclusion if provided
+    const filterIncludeOptions = parseFilterOptions(req.query?.includeOptions as string);
+
+    // Construct the `$or` array conditionally
+    const orConditions = [
+      ...keywordQuery,
+      ...(Object.keys(filterIncludeOptions[0]).length > 0 ? filterIncludeOptions : []), // Only include if there are filters
+    ];
+    console.log(orConditions);
+    const [data] = await Family.aggregate([
       {
         $match: {
-          user: req.user?._id,
-          $and: [{ ...parseFilterOptions(req.query?.filterOptions as string) }],
-          $or: [
-            ...parseQueryKeywords(["fullName", "email", "phoneNumber", "tags"], req.query?.keyword as string),
-            { ...parseFilterOptions(req.query?.includeOptions as string) },
+          $and: [
+            ...parseFilterOptions(req.query?.filterOptions as string), // Apply user filter here
           ],
+          ...(orConditions.length > 0 && { $or: orConditions }), // Only include `$or` if it has conditions
         },
-      },
-      {
-        $setWindowFields: { output: { totalCount: { $count: {} } } },
-      },
-      {
-        $skip: (page - 1) * pageSize,
       },
       {
         $sort: {
@@ -50,26 +54,34 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
         },
       },
       {
-        $limit: pageSize,
-      },
-      {
-        $lookup: {
-          // lookup from the members collection all users who have a family id that matches the family id in the family collection
-          from: "members",
-          localField: "_id",
-          foreignField: "family",
-          as: "members",
+        $facet: {
+          metadata: [
+            { $count: "totalCount" }, // Count the total number of documents
+            { $addFields: { page, pageSize } }, // Add metadata for the page and page size
+          ],
+          entries: [
+            { $skip: (page - 1) * pageSize },
+            { $limit: pageSize },
+            // any lookups necessary..
+            {
+              $lookup: {
+                // lookup from the members collection all users who have a family id that matches the family id in the family collection
+                from: "members",
+                localField: "members",
+                foreignField: "_id",
+                as: "members",
+              },
+            },
+          ], // Get the entries for the page
         },
       },
     ]);
+
     return res.json({
-      families,
+      families: data.entries,
       page,
-      // for total number of pages we have a value called totalCount in the output field of the setWindowFields stage
-      // we need to target one document in the output array, so we use the 0 index, and then access the totalCount property
-      // if we don't have a totalCount, we return 0
-      pages: Math.ceil(families.length >= 1 ? families[0].totalCount / pageSize : 0),
-      totalCount: families.length >= 1 ? families[0].totalCount : 0,
+      pages: Math.ceil(data.metadata[0]?.totalCount / pageSize) || 0,
+      totalCount: data.metadata[0]?.totalCount || 0,
       // pages: Math.ceil(count / pageSize),
       prevPage: page - 1,
       nextPage: page + 1,

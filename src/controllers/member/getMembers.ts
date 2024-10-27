@@ -30,10 +30,9 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     const ministryId = req.params?.ministryId as string;
     if (!ministryId) return res.status(400).json({ message: "Ministry ID is required", success: false });
     // find the members we are searching for, through the ministry thats passed in
-    const members = await Member.aggregate([
+    const [data] = await Member.aggregate([
       {
         $match: {
-          mainMinistry: new mongoose.Types.ObjectId(ministryId),
           $and: [{ ...parseFilterOptions(req.query?.filterOptions as string) }],
           $or: [
             ...parseQueryKeywords(["fullName", "email", "phoneNumber", "tags"], req.query?.keyword as string),
@@ -42,59 +41,75 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
         },
       },
       {
-        $setWindowFields: { output: { totalCount: { $count: {} } } },
-      },
-      {
-        $skip: (page - 1) * pageSize,
-      },
-      {
         $sort: {
-          ...parseSortString(req.query?.sortBy as string, "createdAt;-1"),
+          ...parseSortString(req.query?.sortString as string, "createdAt;-1"),
         },
       },
       {
-        $lookup: {
-          from: "families",
-          localField: "family",
-          foreignField: "_id",
-          as: "family",
-        },
-      },
-      {
-        $unwind: {
-          path: "$family",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $lookup: {
-          // look for all the ministries that this member is a part of
-          from: "ministries",
-          localField: "_id",
-          foreignField: "members",
-          as: "numberOfMinistries",
-          pipeline: [
+        $facet: {
+          metadata: [
+            { $count: "totalCount" }, // Count the total number of documents
+            { $addFields: { page, pageSize } }, // Add metadata for the page and page size
+          ],
+          entries: [
+            { $skip: (page - 1) * pageSize },
+            { $limit: pageSize },
             {
-              $project: {
-                _id: 1,
-                name: 1,
+              $lookup: {
+                from: "families",
+                localField: "family",
+                foreignField: "_id",
+                as: "family",
               },
             },
-          ],
-        },
-      },
-      {
-        $lookup: {
-          // find all ministries that this member is a leader of
-          from: "ministries",
-          localField: "_id",
-          foreignField: "leader",
-          as: "numberOfLeaderMinistries",
-          pipeline: [
             {
-              $project: {
-                _id: 1,
-                name: 1,
+              $lookup: {
+                from: "ministries",
+                let: { memberId: "$_id" }, // the ID of the user/member
+                as: "ministriesMemberOf", // result will be stored in this field
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $and: [
+                          // Check if the memberId exists in the "members" array
+                          { $in: ["$$memberId", "$members"] },
+                          // Check if the user owns the ministry
+                          { $eq: ["$user", req.user._id] },
+                        ],
+                      },
+                    },
+                  },
+                  {
+                    $project: {
+                      _id: 1,
+                      name: 1,
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              $lookup: {
+                // find all ministries that this member is a leader of
+                from: "ministries",
+                localField: "_id",
+                foreignField: "leader",
+                as: "numberOfLeaderMinistries",
+                pipeline: [
+                  {
+                    $project: {
+                      _id: 1,
+                      name: 1,
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              $unwind: {
+                path: "$family",
+                preserveNullAndEmptyArrays: true,
               },
             },
           ],
@@ -104,15 +119,10 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
 
     // return the members
     return res.status(200).json({
-      message: "Members found",
-      success: true,
-      members,
-      pageNumber: page,
-      // for total number of pages we have a value called totalCount in the output field of the setWindowFields stage
-      // we need to target one document in the output array, so we use the 0 index, and then access the totalCount property
-      // if we don't have a totalCount, we return 0
-      pages: Math.ceil(members.length > 0 ? members[0].totalCount / pageSize : 0),
-      totalCount: members.length > 0 ? members[0].totalCount : 0,
+      members: data.entries,
+      page,
+      pages: Math.ceil(data.metadata[0]?.totalCount / pageSize) || 0,
+      totalCount: data.metadata[0]?.totalCount || 0,
       // pages: Math.ceil(count / pageSize),
       prevPage: page - 1,
       nextPage: page + 1,

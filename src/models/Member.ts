@@ -43,6 +43,10 @@ const MemberSchema = new mongoose.Schema(
       // trim
       trim: true,
     },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
     lastName: {
       type: String,
       trim: true,

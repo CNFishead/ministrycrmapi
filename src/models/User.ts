@@ -80,8 +80,7 @@ const UserSchema = new mongoose.Schema(
       unique: true,
     },
     phoneNumber: {
-      type: String,
-      required: true,
+      type: String, 
     },
     initialPayment: {
       type: Date,

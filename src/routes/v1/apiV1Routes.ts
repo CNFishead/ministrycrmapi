@@ -7,7 +7,7 @@ import memberRoutes from "./memberRoutes";
 import familyRoutes from "./familyRoutes";
 import notificationRoutes from "./notificationRoutes";
 import eventRoutes from "./eventRoutes";
-
+import utilRoutes from "./utilRoutes";
 
 const router = express.Router();
 
@@ -20,5 +20,6 @@ router.use("/ministry", ministryRoutes);
 router.use("/member", memberRoutes);
 router.use("/notification", notificationRoutes);
 router.use("/event", eventRoutes);
+router.use("/util", utilRoutes);
 
 export default router;

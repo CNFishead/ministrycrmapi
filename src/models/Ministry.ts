@@ -27,6 +27,11 @@ const MinistrySchema = new mongoose.Schema(
       type: String,
       required: [true, "Please add a Ministry name"],
     },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    members: [{ type: mongoose.Schema.Types.ObjectId, ref: "Member" }],
     description: {
       type: String,
     },

@@ -3,13 +3,15 @@ import { ObjectId } from "mongoose";
 
 /**
  * @description - Member Schema Type
- * 
- * @author Austin Howard 
+ *
+ * @author Austin Howard
  * @since 1.0
  * @version 1.0
  * @lastModified - 2023-06-11T16:20:04.000-05:00
  */
 export default interface MemberType extends mongoose.Document {
+  _id: ObjectId;
+  user: ObjectId;
   firstName: string;
   lastName: string;
   ministry: ObjectId[]; // user can be in multiple ministries
@@ -26,7 +28,7 @@ export default interface MemberType extends mongoose.Document {
     zip: string;
     country: string;
     address2: string;
-  },
+  };
   fullName: string;
   isActive: boolean;
   createdAt: Date;
