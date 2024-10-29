@@ -23,7 +23,8 @@ import User from "../../models/User";
  */
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response, next: any) => {
   try {
-    const { visitors } = req.body;
+    console.log(req.body);
+    const { visitors, familyName } = req.body.data;
     // we need to make sure that the visitors array is not empty.
     if (!visitors || visitors.length === 0) {
       return res.status(400).json({ message: "Visitors array is required", success: false });
@@ -38,13 +39,13 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     // if they are a member, then for every visitor that is a member, we need to check them in.
     // for every visitor not part of the family object, add them to the family object.
     // if the family object does not exist, then create a new family object.
-    const family = await Family.findOne({ familyName: visitors[0].familyName, user: ministry.user }).populate(
-      "members"
-    );
+    // console.log(`familyName: ${familyName}`);
+    const family = await Family.findOne({ name: familyName, user: ministry.user }).populate("members");
+    // console.log(family);
     if (!family) {
       // create a new family object.
       const newFamily = await Family.create({
-        name: visitors[0].familyName,
+        name: familyName,
         user: ministry.user,
       });
       if (!newFamily) {
@@ -81,10 +82,18 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       });
     }
 
+    // console.log(visitors.length);
     // family object exists, so we need to loop over each visitor, match it to a member, and check them in.
     for (const v of visitors) {
-      const member = await Member.findById(v._id);
-      if (member) {
+      console.log(`Checking in visitor: ${v.firstName}`); // checking in visitor
+      // console.log(v._id);
+      if (v?._id) {
+        const member = await Member.findById(v._id);
+        if (!member) {
+          res.status(400).json({ message: "Member not found", success: false });
+          continue; // Skip to the next visitor if member not found
+        }
+        // console.log(`Member exists: ${member.fullName}`); // member exists, so we need to check them in.
         // member exists, so we need to check them in.
         await Member.findByIdAndUpdate(
           member._id,
@@ -94,19 +103,41 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
           },
           { new: true, runValidators: true }
         );
-
+        // console.log(`Member checked in: ${member.fullName}`); // member checked in
         if (!ministry.members.includes(member._id as any)) {
           ministry.members.push(ministry._id as any);
         }
+        // console.log(`Added member to ministry: ${member.fullName}`);
         // save the member object.
         await member.save();
         await ministry.save();
+        // console.log(`Member saved: ${member.fullName}`);
+      } else {
+        // member does not exist, so we need to create a new member object.
+        // console.log(`Member does not exist: ${v.firstName}`); // member does not exist, so we need to create a new member object.
+        let isChild = false;
+        if (v.birthday !== undefined) {
+          isChild = moment().diff(v.birthday, "years") < 16;
+        }
+        const newMember = await Member.create({
+          ...v,
+          user: ministry.user,
+          dateLastVisited: new Date(),
+          isChild,
+        });
+        if (!newMember) {
+          console.log(`Error creating member: ${v.firstName}`); // Error creating member
+          res.status(400).json({ message: "Error creating member", success: false });
+          continue; // Skip to the next visitor if error creating member
+        }
+        await Ministry.findByIdAndUpdate(ministry._id, { $push: { members: newMember._id } });
+        await Family.findByIdAndUpdate(family._id, { $push: { members: newMember._id } });
       }
-
-      return res.status(201).json({
-        success: true,
-      });
     }
+
+    return res.status(201).json({
+      success: true,
+    });
   } catch (e: any) {
     console.log(e);
     error(e, req, res, next);

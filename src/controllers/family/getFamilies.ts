@@ -37,8 +37,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     const orConditions = [
       ...keywordQuery,
       ...(Object.keys(filterIncludeOptions[0]).length > 0 ? filterIncludeOptions : []), // Only include if there are filters
-    ];
-    console.log(orConditions);
+    ]; 
     const [data] = await Family.aggregate([
       {
         $match: {

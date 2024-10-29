@@ -7,6 +7,7 @@ import parseFilterOptions from "../../utils/parseFilterOptions";
 import parseQueryKeywords from "../../utils/parseQueryKeywords";
 import parseSortString from "../../utils/parseSortString";
 import Ministry from "../../models/Ministry";
+import User from "../../models/User";
 
 /**
  * @description - This function will return all members for a ministry, and all sub ministry members.
@@ -26,44 +27,27 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
   try {
     const pageSize = Number(req.query?.limit) || 10;
     const page = Number(req.query?.pageNumber) || 1;
-    const ministryId = req.params?.id;
-    if (!ministryId) return res.status(400).json({ message: "Ministry ID is required", success: false });
+    // Generate the keyword query
+    const keywordQuery = parseQueryKeywords(
+      ["name", "description", "[ministryType.name]", "leader", "members"],
+      req.query?.keyword as string
+    );
 
-    // find the members we are searching for, through the ministry thats passed in
-    const ministry = await Ministry.aggregate([
+    // Generate the filter options for inclusion if provided
+    const filterIncludeOptions = parseFilterOptions(req.query?.includeOptions as string);
+
+    // Construct the `$or` array conditionally
+    const orConditions = [
+      ...keywordQuery,
+      ...(Object.keys(filterIncludeOptions[0]).length > 0 ? filterIncludeOptions : []), // Only include if there are filters
+    ];
+    const [data] = await Ministry.aggregate([
       {
         $match: {
-          ownerMinistry: new mongoose.Types.ObjectId(ministryId),
-          $and: [{ ...parseFilterOptions(req.query?.filterOptions as string) }],
-          $or: [
-            ...parseQueryKeywords(
-              ["name", "description", "[ministryType.name]", "leader", "members"],
-              req.query?.keyword as string
-            ),
+          $and: [
+            ...parseFilterOptions(req.query?.filterOptions as string), // Apply user filter here
           ],
-        },
-      },
-      {
-        $setWindowFields: { output: { totalCount: { $count: {} } } },
-      },
-      {
-        $skip: pageSize * (page - 1),
-      },
-      {
-        $limit: pageSize,
-      },
-      {
-        $lookup: {
-          from: "members",
-          localField: "leader",
-          foreignField: "_id",
-          as: "leader",
-        },
-      },
-      {
-        $unwind: {
-          path: "$leader",
-          preserveNullAndEmptyArrays: true,
+          ...(orConditions.length > 0 && { $or: orConditions }), // Only include `$or` if it has conditions
         },
       },
       {
@@ -71,19 +55,52 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
           ...parseSortString(req.query?.sortString as string, "createdAt;-1"),
         },
       },
+      {
+        $facet: {
+          metadata: [
+            { $count: "totalCount" }, // Count the total number of documents
+            { $addFields: { page, pageSize } }, // Add metadata for the page and page size
+          ],
+          entries: [
+            { $skip: (page - 1) * pageSize },
+            { $limit: pageSize },
+            {
+              $lookup: {
+                from: "members",
+                localField: "leader",
+                foreignField: "_id",
+                as: "leader",
+              },
+            },
+            {
+              $unwind: {
+                path: "$leader",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+          ],
+        },
+      },
     ]);
 
+    for (const m of data.entries) {
+      // if the ministry.leader object is null, then try to find the leader in the User table
+      if (!data.entries[0]?.leader) {
+        // find the leader in the User table
+        const ministryLeader = await Ministry.findById(m._id);
+        const leader = await User.findById(ministryLeader?.leader);
+        if (leader) {
+          data.entries[0].leader = leader;
+        }
+      }
+    }
+
     // return the members
-    return res.status(200).json({
-      message: "Ministries found",
-      success: true,
-      ministries: ministry,
-      pageNumber: page,
-      // for total number of pages we have a value called totalCount in the output field of the setWindowFields stage
-      // we need to target one document in the output array, so we use the 0 index, and then access the totalCount property
-      // if we don't have a totalCount, we return 0
-      pages: Math.ceil(ministry.length > 0 ? ministry[0].totalCount / pageSize : 0),
-      totalCount: ministry.length > 0 ? ministry[0].totalCount : 0,
+    return res.json({
+      ministries: data.entries,
+      page,
+      pages: Math.ceil(data.metadata[0]?.totalCount / pageSize) || 0,
+      totalCount: data.metadata[0]?.totalCount || 0,
       // pages: Math.ceil(count / pageSize),
       prevPage: page - 1,
       nextPage: page + 1,

@@ -29,15 +29,24 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     const page = Number(req.query?.pageNumber as string) || 1;
     const ministryId = req.params?.ministryId as string;
     if (!ministryId) return res.status(400).json({ message: "Ministry ID is required", success: false });
-    // find the members we are searching for, through the ministry thats passed in
+    // Generate the keyword query
+    const keywordQuery = parseQueryKeywords(["name", "tags"], req.query?.keyword as string);
+
+    // Generate the filter options for inclusion if provided
+    const filterIncludeOptions = parseFilterOptions(req.query?.includeOptions as string);
+
+    // Construct the `$or` array conditionally
+    const orConditions = [
+      ...keywordQuery,
+      ...(Object.keys(filterIncludeOptions[0]).length > 0 ? filterIncludeOptions : []), // Only include if there are filters
+    ];
     const [data] = await Member.aggregate([
       {
         $match: {
-          $and: [{ ...parseFilterOptions(req.query?.filterOptions as string) }],
-          $or: [
-            ...parseQueryKeywords(["fullName", "email", "phoneNumber", "tags"], req.query?.keyword as string),
-            { ...parseFilterOptions(req.query?.includeOptions as string) },
+          $and: [
+            ...parseFilterOptions(req.query?.filterOptions as string), // Apply user filter here
           ],
+          ...(orConditions.length > 0 && { $or: orConditions }), // Only include `$or` if it has conditions
         },
       },
       {
