@@ -29,6 +29,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
     if (!mainMinistry) {
       return res.status(404).json({ message: "Main Ministry not found" });
     }
+    console.log(req.body);
 
     // check that a leader is passed in
     const leader = req.body?.leader;
@@ -38,6 +39,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
     // create the ministry
     const ministry = await Ministry.create({
       ...req.body,
+      user: req.user._id,
       ownerMinistry: mainMinistryId,
     });
     // check that it was created

@@ -23,11 +23,11 @@ const router = express.Router();
  * @lastModified 2023-06-25T16:33:05.000-05:00
  */
 router.route("/").get(getFamilies);
+router.route("/:id/removeMember/:memberId").put(removeFamilyMember);
 
 router.use(protect());
 router.route("/").post(createFamily);
 router.route("/:id").get(getFamily).put(updateFamily).delete(deleteFamily);
 router.route("/:id/addMember").put(addFamilyMember);
-router.route("/:id/removeMember/:memberId").put(removeFamilyMember);
 
 export default router;

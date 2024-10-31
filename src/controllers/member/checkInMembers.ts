@@ -22,8 +22,7 @@ import User from "../../models/User";
  *
  */
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response, next: any) => {
-  try {
-    console.log(req.body);
+  try { 
     const { visitors, familyName } = req.body.data;
     // we need to make sure that the visitors array is not empty.
     if (!visitors || visitors.length === 0) {

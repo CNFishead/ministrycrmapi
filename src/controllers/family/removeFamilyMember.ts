@@ -18,7 +18,7 @@ import Family from "../../models/Family";
  * @version           1.0.0
  * @since             1.0.0
  * @lastModifiedBy    Austin Howard
- * @lastModified      2023-06-25T16:33:05.000-05:00
+ * @lastModified      2024-10-30 09:14:45
  */
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
@@ -31,15 +31,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
         success: false,
         message: "No family found",
       });
-    }
-    // check if the user is the owner of the family
-    if (family?.user?.toString() !== req.user?._id.toString()) {
-      // return a 401 if they are not
-      return res.status(401).json({
-        success: false,
-        message: "Not authorized",
-      });
-    }
+    } 
     // remove the member from the family
     family.members = family.members.filter((member: any) => member.toString() !== req.params?.memberId.toString());
     // save the family
