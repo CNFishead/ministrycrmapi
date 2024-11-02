@@ -24,6 +24,18 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
       if (ministries.length > 0) {
         return res.status(400).json({ message: "Cannot delete a member that is a leader of a ministry" });
       }
+
+      // next we need to find any ministries that the member is a part of and remove them from the ministry
+      // the members array is a collection of member ids, so we need to remove the member id from the array
+      const _ministries = await Ministry.find({
+        members: { $in: [memberId] },
+      });
+
+      for (const _m of _ministries) {
+        _m.members = _m.members.filter((m) => m.toString() !== memberId);
+        await _m.save();
+      }
+
       await Member.findByIdAndDelete(memberId);
 
       return res.status(200).json({ message: "Member Deleted", success: true });

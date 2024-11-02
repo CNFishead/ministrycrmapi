@@ -20,58 +20,70 @@ import Event from "../../models/Event";
  */
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   try {
-    const { limit = 10, pageNumber = 1 } = req.query as any;
+    const pageSize = Number(req.query?.limit) || 10;
+    const page = Number(req.query?.pageNumber as string) || 1;
+    // Generate the keyword query
+    const keywordQuery = parseQueryKeywords(["name", "tags"], req.query?.keyword as string);
 
-    const data = await Event.aggregate([
+    // Generate the filter options for inclusion if provided
+    const filterIncludeOptions = parseFilterOptions(req.query?.includeOptions as string);
+
+    // Construct the `$or` array conditionally
+    const orConditions = [
+      ...(Object.keys(keywordQuery[0]).length > 0 ? keywordQuery : []),
+      ...(Object.keys(filterIncludeOptions[0]).length > 0 ? filterIncludeOptions : []), // Only include if there are filters
+    ];
+ 
+    const [data] = await Event.aggregate([
       {
         $match: {
-          $and: [{ ...parseFilterOptions(req.query?.filterOptions as string) }],
-          $or: [
-            ...parseQueryKeywords(["name", "description"], req.query?.keyword as string),
-            { ...parseFilterOptions(req.query?.includeOptions as string) },
+          $and: [
+            ...parseFilterOptions(req.query?.filterOptions as string), // Apply user filter here
           ],
+          ...(orConditions.length > 0 && { $or: orConditions }), // Only include `$or` if it has conditions
         },
-      },
-      {
-        $setWindowFields: { output: { totalCount: { $count: {} } } },
       },
       {
         $sort: {
-          ...parseSortString(req.query?.sortBy as string, "createdAt;-1"),
+          ...parseSortString(req.query?.sortString as string, "createdAt;-1"),
         },
       },
       {
-        $skip: Number(limit) * (Number(pageNumber) - 1),
-      },
-      {
-        $limit: Number(limit),
-      },
-      {
-        $lookup: {
-          from: "ministries",
-          localField: "ministry",
-          foreignField: "_id",
-          as: "ministry",
-        },
-      },
-      {
-        $unwind: {
-          path: "$ministry",
-          preserveNullAndEmptyArrays: true,
+        $facet: {
+          metadata: [
+            { $count: "totalCount" }, // Count the total number of documents
+            { $addFields: { page, pageSize } }, // Add metadata for the page and page size
+          ],
+          entries: [
+            { $skip: (page - 1) * pageSize },
+            { $limit: pageSize },
+            {
+              $lookup: {
+                from: "ministries",
+                localField: "ministry",
+                foreignField: "_id",
+                as: "ministry",
+              },
+            },
+            {
+              $unwind: {
+                path: "$ministry",
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+          ],
         },
       },
     ]);
+
     return res.status(200).json({
-      success: true,
-      payload: {
-        data,
-        pageNumber,
-        pages: Math.ceil(data.length > 0 ? data[0].totalCount / (limit as any) : 0),
-        totalCount: data.length > 0 ? data[0].totalCount : 0,
-        // pages: Math.ceil(count / pageSize),
-        prevPage: (pageNumber as any) - 1,
-        nextPage: (pageNumber as any) + 1,
-      },
+      data: data.entries,
+      page,
+      pages: Math.ceil(data.metadata[0]?.totalCount / pageSize) || 0,
+      totalCount: data.metadata[0]?.totalCount || 0,
+      // pages: Math.ceil(count / pageSize),
+      prevPage: page - 1,
+      nextPage: page + 1,
     });
   } catch (e) {
     console.log(e);

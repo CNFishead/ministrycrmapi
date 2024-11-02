@@ -49,6 +49,7 @@ export default async (id: any) => {
     if (!user[0]) {
       throw new Error("User not found");
     }
+    console.log(user[0]);
     return {
       ...user[0],
       token: generateToken(user[0]._id),

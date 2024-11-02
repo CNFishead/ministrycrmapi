@@ -35,9 +35,10 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
 
     // Construct the `$or` array conditionally
     const orConditions = [
-      ...keywordQuery,
+      ...(Object.keys(keywordQuery[0]).length > 0 ? keywordQuery : []),
       ...(Object.keys(filterIncludeOptions[0]).length > 0 ? filterIncludeOptions : []), // Only include if there are filters
-    ]; 
+    ];
+
     const [data] = await Family.aggregate([
       {
         $match: {
@@ -71,13 +72,13 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
                 as: "members",
               },
             },
-          ], // Get the entries for the page
+          ],
         },
       },
     ]);
 
     return res.json({
-      families: data.entries,
+      data: data.entries,
       page,
       pages: Math.ceil(data.metadata[0]?.totalCount / pageSize) || 0,
       totalCount: data.metadata[0]?.totalCount || 0,
