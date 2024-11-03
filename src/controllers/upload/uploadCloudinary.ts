@@ -52,7 +52,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     // create a readstream that sends the buffer to cloudinary
     const stream = cloudinary.uploader.upload_stream(
       {
-        folder: `shepherdscms/${req.body.username}/${req.body.folder}`,
+        folder: `/shepherdscms/${req.body.username}/${req.body.folder}`,
         public_id: fileName.name,
         overwrite: true,
         resource_type: "image",

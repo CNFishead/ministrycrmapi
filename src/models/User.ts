@@ -80,7 +80,7 @@ const UserSchema = new mongoose.Schema(
       unique: true,
     },
     phoneNumber: {
-      type: String, 
+      type: String,
     },
     initialPayment: {
       type: Date,
@@ -136,6 +136,12 @@ const UserSchema = new mongoose.Schema(
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+    emailVerificationToken: {
+      type: String,
+    },
+    emailVerificationExpires: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
