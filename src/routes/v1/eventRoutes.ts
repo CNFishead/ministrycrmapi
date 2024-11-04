@@ -7,7 +7,7 @@ import deleteEvent from "../../controllers/event/deleteEvent";
 const router = express.Router();
 
 // Import all of our routes
-router.use(protect());
+router.use(protect);
 router.route("/").get(getEvents).post(createEvent);
 router.route("/:id").get().put(updateEvent).delete(deleteEvent);
 

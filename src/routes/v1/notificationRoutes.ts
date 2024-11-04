@@ -20,7 +20,7 @@ import updateNotification from '../../controllers/notifications/updateNotificati
  * @lastUpdatedBy Austin Howard
  * @lastUpdated 2023-07-28T14:55:17.000-05:00
  */
-router.use(protect());
+router.use(protect);
 
 router.route('/').get(getNotifications).post(createNotification); // get all notifications and create a notification
 router.route('/all').put(updateNotification); // update all notifications to read

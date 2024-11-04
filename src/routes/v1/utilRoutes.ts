@@ -5,7 +5,7 @@ const router = express.Router()
 
 
 // Import all of our routes
-router.use(protect()) // protect all routes below this line
+router.use(protect) // protect all routes below this line
 router.route('/').get(devtool);
 
 export default router;

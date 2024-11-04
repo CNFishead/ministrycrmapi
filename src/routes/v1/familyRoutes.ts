@@ -25,7 +25,7 @@ const router = express.Router();
 router.route("/").get(getFamilies);
 router.route("/:id/removeMember/:memberId").put(removeFamilyMember);
 
-router.use(protect());
+router.use(protect);
 router.route("/").post(createFamily);
 router.route("/:id").get(getFamily).put(updateFamily).delete(deleteFamily);
 router.route("/:id/addMember").put(addFamilyMember);
