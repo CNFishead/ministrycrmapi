@@ -12,6 +12,7 @@ export default interface UserType extends mongoose.Document {
   _id: string;
   firstName: string;
   lastName: string;
+  customerId: string;
   profileImageUrl: string;
   sex: string;
   email: string;
@@ -33,6 +34,7 @@ export default interface UserType extends mongoose.Document {
   createdAt: Date;
   updatedAt: Date;
   credits: number;
+  nextPayment: Date;
   isEmailVerified: boolean;
   emailVerificationToken: string;
   emailVerificationExpires: Date;

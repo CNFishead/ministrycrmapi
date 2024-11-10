@@ -26,6 +26,7 @@ const MinistrySchema = new mongoose.Schema(
     name: {
       type: String,
       required: [true, "Please add a Ministry name"],
+      trim: true,
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,

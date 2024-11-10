@@ -5,9 +5,7 @@ interface OrderAttributes extends OrderType {}
 
 const OrderSchema = new Schema<OrderAttributes>(
   {
-    merchant: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    agent: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    customerId: { type: Schema.Types.ObjectId, ref: 'Customer' },
+    user: { type: Schema.Types.ObjectId, ref: 'User' },
     transactionId: { type: String },
     description: { type: String },
     orderInformation: {

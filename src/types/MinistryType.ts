@@ -11,6 +11,7 @@ export default interface MinistryType {
   country: string;
   ministryType: string;
   leader: string;
+  ministryImageUrl: string;
   members: string[];
   events: string[];
   announcements: string[];
