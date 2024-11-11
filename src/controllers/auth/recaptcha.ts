@@ -1,5 +1,5 @@
-import asyncHandler from '../../middleware/asyncHandler.js';
-import errorHandler from '../../middleware/error.js';
+import asyncHandler from '../../middleware/asyncHandler';
+import errorHandler from '../../middleware/error';
 import axios from 'axios';
 
 /**
