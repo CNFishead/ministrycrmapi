@@ -10,6 +10,8 @@ import removeCustomer from '../paymentControllers/removeCustomer';
 import PaymentProcessorFactory from '../../factory/PaymentProcessorFactory';
 import moment from 'moment';
 import sendEmail from '../../utils/sendEmail';
+import sendMailSparkPost from '../../utils/sendMailSparkPost';
+import generateToken from '../../utils/generateToken';
 /**
  * @description: this function registers a new account to the database.
  *               It will check if the email is already in use, if it is, it will throw an error
@@ -116,24 +118,38 @@ export default asyncHandler(async (req: Request, res: Response) => {
     // send emails to the user and the admin
     // send email verification
     // set the hostname for the email validation link, if we are in development send it to localhost
-    let hostName = 'https://auth.shepherdscms.com';
+    let hostName = 'auth.shepherdscms.com';
     if (process.env.NODE_ENV === 'development') {
-      hostName = 'http://localhost:3003';
+      hostName = 'localhost:3003';
     }
-    await sendEmail({
-      personalizations: [
+    await sendMailSparkPost(
+      { template_id: 'registration-email' },
+      [
         {
-          to: [{ email: newUser.email, name: newUser.fullName }],
+          address: { email: newUser.email },
+          substitution_data: {
+            name: newUser.fullName,
+            subject: 'Welcome to the platform',
+            token: generateToken(newUser._id),
+          },
         },
       ],
-      from: 'info@shepherdscms.com',
-      dynamicTemplateData: {
-        subject: `Please complete your registration, by verifying your email!`,
-        verifyEmailUrl: `${hostName}/resend-verification?verify=${newUser.emailVerificationToken}`,
-        firstName: newUser.fullName,
-      },
-      templateId: 'd-82805d3a5688402883118c35d3c9ea81',
-    });
+      {}
+    );
+    await sendMailSparkPost(
+      { template_id: 'verification-email' },
+      [
+        {
+          address: { email: newUser.email },
+          substitution_data: {
+            name: newUser.fullName,
+            host: hostName,
+            token: newUser.emailVerificationToken,
+          },
+        },
+      ],
+      {}
+    );
 
     const admin = await User.findOne({
       role: {
@@ -142,22 +158,20 @@ export default asyncHandler(async (req: Request, res: Response) => {
     });
     if (admin) {
       // send email to admin
-      await sendEmail({
-        personalizations: [
+      await sendMailSparkPost(
+        { template_id: 'admin-new-user' },
+        [
           {
-            to: [{ email: admin.email, name: admin.fullName }],
+            address: { email: admin.email },
+            substitution_data: {
+              name: admin.fullName,
+              subject: 'New User Registration',
+              user: newUser.fullName,
+            },
           },
         ],
-        from: 'info@shepherdscms.com',
-        dynamicTemplateData: {
-          subject: `New User Registration - ${newUser.fullName}`,
-          fullName: newUser.fullName,
-          ministryBannerLogoUrl:
-            ministry?.ministryImageUrl || 'https://via.placeholder.com/150',
-          date: moment().format('YYYY'),
-        },
-        templateId: 'd-b864795c5046489d9f07bc5c3c74127c ',
-      });
+        {}
+      );
     }
 
     return res.status(201).json({

@@ -19,12 +19,12 @@ import axios from 'axios';
  */
 export default asyncHandler(async (req: any, res: any, next: any) => {
   try {
-    const { token } = req.body;
+    const { token } = req.body; 
 
     const secretKey = process.env.RECAPTCHA_SECRET_KEY;
 
-    const url = `https://www.google.com/recaptcha/api/siteverify?secret=6Ld98jclAAAAAN_o1gmQxHBOlbSGnpCM_oDnyLbr&response=${token}`;
-    const { data } = await axios.post(url);
+    const url = `https://www.google.com/recaptcha/api/siteverify?secret=6Lfk93oqAAAAAMkAOyt6xsGritehPp_eRmPO44AW&response=${token}`;
+    const { data } = await axios.post(url); 
 
     if (data.success) {
       return res

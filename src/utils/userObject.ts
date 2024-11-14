@@ -1,6 +1,6 @@
-import mongoose, { ObjectId } from "mongoose";
-import User from "../models/User";
-import generateToken from "./generateToken";
+import mongoose, { ObjectId } from 'mongoose';
+import User from '../models/User';
+import generateToken from './generateToken';
 
 /**
  *  @description: This function finds a user in the database where we need to return a user object to the front
@@ -22,15 +22,15 @@ export default async (id: any) => {
       {
         // look in the ministries table collection for the first instance where the user is the leader
         $lookup: {
-          from: "ministries",
-          localField: "_id",
-          foreignField: "leader",
-          as: "ministry",
+          from: 'ministries',
+          localField: '_id',
+          foreignField: 'leader',
+          as: 'ministry',
         },
       },
       {
         $unwind: {
-          path: "$ministry",
+          path: '$ministry',
           preserveNullAndEmptyArrays: true,
         },
       },
@@ -43,13 +43,14 @@ export default async (id: any) => {
           role: 1,
           profileImageUrl: 1,
           username: 1,
+          isEmailVerified: 1,
         },
       },
     ]);
-    if (!user[0]) {
-      throw new Error("User not found");
-    }
     console.log(user[0]);
+    if (!user[0]) {
+      throw new Error('User not found');
+    }
     return {
       ...user[0],
       token: generateToken(user[0]._id),

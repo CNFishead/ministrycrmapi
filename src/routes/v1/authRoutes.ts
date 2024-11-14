@@ -6,6 +6,7 @@ import checkUsername from "../../controllers/auth/checkUsername";
 import checkEmailExists from "../../controllers/auth/checkEmailExists";
 import getMe from "../../controllers/auth/getMe";
 import recaptcha from "../../controllers/auth/recaptcha";
+import resendVerificationEmailVerify from "../../controllers/auth/resendVerificationEmailVerify";
 const router = express.Router();
 
 // Import all of our routes
@@ -14,6 +15,7 @@ router.route("/:email/email").get(checkEmailExists);
 router.route("/register").post(register);
 router.route("/recaptcha").post(recaptcha);
 router.route("/forgot-password").post(forgotpassword);
+router.route("/resend-verification-email").post(resendVerificationEmailVerify);
 router.route("/login").post(login);
 router.route("/me").post(getMe);
 
