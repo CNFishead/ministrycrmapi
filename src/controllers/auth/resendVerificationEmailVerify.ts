@@ -36,7 +36,7 @@ export default asyncHandler(async (req: Request, res: Response) => {
       { new: true }
     );
     // set the hostname for the email validation link, if we are in development send it to localhost
-    let hostName = 'auth.shepherdcms.com';
+    let hostName = 'auth.shepherdcms.org';
     if (process.env.NODE_ENV === 'development') {
       hostName = 'localhost:3003';
     }

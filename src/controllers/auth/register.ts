@@ -2,14 +2,11 @@ import asyncHandler from '../../middleware/asyncHandler';
 import Ministry from '../../models/Ministry';
 import User from '../../models/User';
 import { Response, Request } from 'express';
-import userObject from '../../utils/userObject';
+import crypto from 'crypto';
 import Member from '../../models/Member';
-import createCustomer from '../paymentControllers/createCustomer';
-import createVault from '../paymentControllers/createVault';
-import removeCustomer from '../paymentControllers/removeCustomer';
+import createCustomer from '../paymentControllers/createCustomer'; 
 import PaymentProcessorFactory from '../../factory/PaymentProcessorFactory';
-import moment from 'moment';
-import sendEmail from '../../utils/sendEmail';
+import moment from 'moment'; 
 import sendMailSparkPost from '../../utils/sendMailSparkPost';
 import generateToken from '../../utils/generateToken';
 /**
@@ -115,10 +112,13 @@ export default asyncHandler(async (req: Request, res: Response) => {
     // save the user object
     await newUser.save();
 
+    // now we need to update the users emailVerificationToken and expire
+    newUser.emailVerificationToken = await crypto.randomBytes(20).toString('hex');
+    newUser.emailVerificationExpires = new Date(Date.now() + 3600000); // 1 hour
     // send emails to the user and the admin
     // send email verification
     // set the hostname for the email validation link, if we are in development send it to localhost
-    let hostName = 'auth.shepherdscms.com';
+    let hostName = 'auth.shepherdcms.org';
     if (process.env.NODE_ENV === 'development') {
       hostName = 'localhost:3003';
     }

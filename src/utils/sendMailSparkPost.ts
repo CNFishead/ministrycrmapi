@@ -26,7 +26,7 @@ export default async (
       options,
     });
     
-    console.log(response);
+    // console.log(response);
     return response;
   } catch (error) {
     console.error(error);

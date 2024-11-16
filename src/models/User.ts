@@ -117,7 +117,15 @@ const UserSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    role: [{ type: String, enum: ['user', 'admin'], default: ['user'] }],
+    // role is an array of strings, that defaults to 'user', but can be values of 'admin', 'user', 'moderator', etc.
+    role: [
+      {
+        type: String,
+        default: 'user',
+        enum: ['user', 'admin', 'moderator'],
+      },
+    ],
+
     fullName: {
       type: String,
     },
