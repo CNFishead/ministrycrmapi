@@ -8,6 +8,7 @@ import getMe from '../../controllers/auth/getMe';
 import recaptcha from '../../controllers/auth/recaptcha';
 import resendVerificationEmailVerify from '../../controllers/auth/resendVerificationEmailVerify';
 import resetPassword from '../../controllers/auth/resetPassword';
+import verifyEmail from '../../controllers/auth/verifyEmail';
 const router = express.Router();
 
 // Import all of our routes
@@ -17,6 +18,7 @@ router.route('/register').post(register);
 router.route('/recaptcha').post(recaptcha);
 router.route('/resetpassword/:resettoken').put(resetPassword);
 router.route('/forgotpassword').post(forgotpassword);
+router.route('/verifyEmail').post(verifyEmail);
 router.route('/resend-verification-email').post(resendVerificationEmailVerify);
 router.route('/login').post(login);
 router.route('/me').post(getMe);
