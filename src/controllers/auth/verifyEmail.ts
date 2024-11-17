@@ -34,7 +34,7 @@ export default asyncHandler(async (req: Request, res: Response) => {
     });
     // if the user is not found, return an error
     if (!user) {
-      return res.status(400).json({ message: 'Invalid token.' });
+      return res.status(401).json({ message: 'Invalid token.' });
     }
     // console.log(user);
     // if the user is found, update the user's emailVerified field to true
@@ -50,7 +50,7 @@ export default asyncHandler(async (req: Request, res: Response) => {
     );
 
     if (!updatedUser) {
-      return res.status(400).json({
+      return res.status(402).json({
         message: 'Something went wrong updating the users email verification',
       });
     }
