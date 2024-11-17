@@ -31,7 +31,7 @@ export default asyncHandler(async (req: Request, res: Response) => {
       user._id,
       {
         emailVerificationToken: await crypto.randomBytes(20).toString('hex'),
-        emailVerificationExpire: Date.now() + 10 * 60 * 1000,
+        emailVerificationExpires: Date.now() + 10 * 60 * 1000,
       },
       { new: true }
     );

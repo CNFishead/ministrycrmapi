@@ -19,9 +19,7 @@ export const resetPassword = asyncHandler(
   async (req: Request, res: Response) => {
     try {
       const { password, confirmPassword } = req.body;
-      const { resettoken } = req.params;
-      console.log(req.body);
-      console.log(resettoken);
+      const { resettoken } = req.params; 
 
       // ensure that the password, and confirm password are the same
       if (password !== confirmPassword) {
