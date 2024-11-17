@@ -3,7 +3,7 @@ import errorHandler from '../../middleware/error';
 import userObject from '../../utils/userObject';
 import { Request, Response } from 'express';
 import UserSchema from '../../models/User';
-import UserType from '../../types/UserType'; 
+import UserType from '../../types/UserType';
 import { encryptData } from '../../utils/encryption';
 
 /**
@@ -58,7 +58,7 @@ export default asyncHandler(async (req: Request, res: Response) => {
     return res.status(200).json({
       success: true,
       message: 'Email successfully verified.',
-      payload: encryptData(await userObject(updatedUser._id)),
+      payload: encryptData(await userObject(updatedUser._id).toString()),
     });
   } catch (error) {
     console.log(error);

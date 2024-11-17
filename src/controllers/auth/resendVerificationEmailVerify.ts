@@ -20,6 +20,7 @@ import sendMailSparkPost from '../../utils/sendMailSparkPost';
 export default asyncHandler(async (req: Request, res: Response) => {
   try {
     // get the user from the database using the user's email that was sent in the request body
+    console.log(req.body);
     const user = await UserSchema.findOne({ email: req.body.email });
     // if the user is not found, return an error
     if (!user) {
@@ -35,6 +36,13 @@ export default asyncHandler(async (req: Request, res: Response) => {
       },
       { new: true }
     );
+
+    // protocol for the reset url
+    let protocol = 'https://';
+    if (process.env.NODE_ENV === 'development') {
+      protocol = 'http://';
+    }
+
     // set the hostname for the email validation link, if we are in development send it to localhost
     let hostName = 'auth.shepherdcms.org';
     if (process.env.NODE_ENV === 'development') {
@@ -47,8 +55,9 @@ export default asyncHandler(async (req: Request, res: Response) => {
         {
           address: { email: updatedUser!.email },
           substitution_data: {
-            name: updatedUser!.fullName,
-            host: hostName,
+            name: user.fullName,
+            protocol: protocol,
+            hostname: hostName,
             token: updatedUser!.emailVerificationToken,
           },
         },

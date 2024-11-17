@@ -47,7 +47,6 @@ export default async (id: any) => {
         },
       },
     ]);
-    console.log(user[0]);
     if (!user[0]) {
       throw new Error('User not found');
     }
