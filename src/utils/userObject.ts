@@ -18,12 +18,34 @@ export default async (id: any) => {
           _id: id,
         },
       },
+      // lookup the member profile created for the user
+      {
+        $lookup: {
+          from: 'members',
+          localField: '_id',
+          foreignField: 'user',
+          as: 'member',
+          pipeline: [
+            {
+              $project: {
+                _id: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $unwind: {
+          path: '$member',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
       // use the id of the user to find the ministry that the user is a leader of
       {
         // look in the ministries table collection for the first instance where the user is the leader
         $lookup: {
           from: 'ministries',
-          localField: '_id',
+          localField: 'member._id',
           foreignField: 'leader',
           as: 'ministry',
         },
@@ -39,6 +61,7 @@ export default async (id: any) => {
           firstName: 1,
           lastName: 1,
           email: 1,
+          member: 1,
           ministry: 1,
           role: 1,
           profileImageUrl: 1,
