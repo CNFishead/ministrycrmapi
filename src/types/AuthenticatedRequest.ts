@@ -11,4 +11,9 @@ import UserType from "./UserType";
  */
 export interface AuthenticatedRequest extends Request {
   user: UserType;
+  params: {
+    [x: string]: any;
+    id?: string;
+    slug?: string;
+  };
 }

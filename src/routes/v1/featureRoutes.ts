@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.route("/").get(getFeatures);
 
-router.use(protect);
+router.use(protect());
 // Import all of our routes
 router.route("/").post(createFeature);
 

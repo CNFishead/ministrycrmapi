@@ -7,6 +7,6 @@ const router = express.Router();
 // Import all of our routes
 router.route("/").post(uploadPhoto);
 router.route("/cloudinary").post(uploadCloudinary);
-router.use(protect); // protect all routes below this line
+router.use(protect()); // protect all routes below this line
 
 export default router;

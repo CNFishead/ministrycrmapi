@@ -11,7 +11,7 @@
  * @since 1.0.0
  * @version 1.0.2
  * @lastModifiedBy Austin Howard
- * @lastModified 2023-08-27T13:42:45.000-05:00
+ * @lastModified 2024-07-25 10:18:22
  *
  */
 export default (array: string[], key: string) => {
@@ -21,19 +21,35 @@ export default (array: string[], key: string) => {
 
   // each value in the array needs to be returned as an object: [{ key: { $regex: value, $options: 'i' } }, { key: { $regex: value, $options: 'i' } }}]
   array.forEach((value) => {
-    if (value.includes("[") && value.includes("]")) {
-      const [fieldName, subField] = value.split(".");
-      // remove the square brackets from the fieldName
-      const elemMatchField = fieldName.replace("[", "");
-      // remove the square brackets from the subField
-      const subFieldFinal = subField.replace("]", "");
-      parsed.push({
-        [elemMatchField]: {
-          $elemMatch: { [subFieldFinal]: { $regex: key.trim(), $options: "i" } },
-        },
-      });
+    if (value.includes('[') && value.includes(']')) {
+      try {
+        // check if the value has a '.' in it, if it does, we need to parse it, otherwise we can just use the value in the array
+        if (value.includes('.')) {
+          const [fieldName, subField] = value.split('.');
+          // remove the square brackets from the fieldName
+          const elemMatchField = fieldName.replace('[', '');
+          // remove the square brackets from the subField
+          const subFieldFinal = subField.replace(']', '');
+          parsed.push({
+            [elemMatchField]: {
+              $elemMatch: {
+                [subFieldFinal]: { $regex: key.trim(), $options: 'i' },
+              },
+            },
+          });
+        } else {
+          // if the value does not have a '.' in it, we can just use the value as is
+          const elemMatchField = value.replace('[', '').replace(']', '');
+          parsed.push({
+            [elemMatchField]: { $regex: key.trim(), $options: 'i' },
+          });
+        }
+      } catch (error) {
+        console.log(error);
+        throw new Error('Invalid array value');
+      }
     } else {
-      parsed.push({ [value]: { $regex: key.trim(), $options: "i" } });
+      parsed.push({ [value]: { $regex: key.trim(), $options: 'i' } });
     }
   });
   return parsed;

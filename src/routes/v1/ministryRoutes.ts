@@ -11,7 +11,7 @@ const router = express.Router();
 router.route("/:id").get(getMinistry);
 router.route("/:id/checkin").post(checkInMembers);
 
-router.use(protect);
+router.use(protect());
 router.route("/:id/subministries/:subministryId").delete(deleteMinistry);
 router.route("/:id/subministries").get(getMinistries).delete(deleteMinistry);
 router.route("/:id").put(updateMinistry).post(createMinistry);

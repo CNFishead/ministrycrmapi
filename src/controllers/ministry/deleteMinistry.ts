@@ -20,7 +20,7 @@ import Ministry from "../../models/Ministry";
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   try {
     // check the id exists
-    const ministryId = req.params?.subministryId;
+    const ministryId = req.params?.subministryId; 
     if (!ministryId) {
       return res.status(400).json({ message: "Ministry ID is required" });
     }

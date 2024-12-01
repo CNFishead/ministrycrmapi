@@ -8,7 +8,7 @@ import deleteMember from "../../controllers/member/deleteMember";
 const router = express.Router();
 
 // Import all of our routes
-router.use(protect);
+router.use(protect());
 router.route("/").post(createMember);
 router.route("/:memberId").delete(deleteMember);
 router.route("/:memberId/update").put(updateMember);

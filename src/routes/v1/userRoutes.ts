@@ -6,7 +6,7 @@ const router = express.Router()
 
 
 // Import all of our routes
-router.use(protect)
+router.use(protect())
 router.route('/me').get(getMe)
 router.route('/').put(updateUser)
 

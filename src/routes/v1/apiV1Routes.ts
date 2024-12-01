@@ -9,6 +9,7 @@ import notificationRoutes from "./notificationRoutes";
 import eventRoutes from "./eventRoutes";
 import utilRoutes from "./utilRoutes";
 import featureRoutes from "./featureRoutes";
+import apikeyRoutes from "./apiKeyRoutes";
 
 const router = express.Router();
 
@@ -23,5 +24,6 @@ router.use("/notification", notificationRoutes);
 router.use("/event", eventRoutes);
 router.use("/util", utilRoutes);
 router.use("/feature", featureRoutes);
+router.use("/apikey", apikeyRoutes);
 
 export default router;
