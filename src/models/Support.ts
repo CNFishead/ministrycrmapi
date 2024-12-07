@@ -1,5 +1,22 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
+import UserType from '../types/UserType';
+import { SupportGroupType } from './SupportGroups';
 
+export type SupportType = {
+  requester: UserType;
+  requesterDetails: {
+    email: String;
+    fullName: String;
+  };
+  assignee: UserType;
+  groups: SupportGroupType[];
+  subject: string;
+  description: string;
+  status: string;
+  priority: string;
+  category: [string];
+  dateSolved: Date;
+};
 /**
  * @description Support schema for ticketing system
  * @type {Schema}
@@ -17,7 +34,9 @@ import mongoose from 'mongoose';
  *
  *
  */
-const SupportSchema = new mongoose.Schema(
+interface SupportAttributes extends SupportType {}
+
+const SupportSchema = new Schema<SupportAttributes>(
   {
     requester: {
       type: mongoose.Schema.Types.ObjectId,

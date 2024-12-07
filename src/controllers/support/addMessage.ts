@@ -8,6 +8,7 @@ import SupportMessage from '../../models/SupportMessage';
 import User from '../../models/User';
 import Notification from '../../models/Notification';
 import socket from '../../utils/socket';
+import sendMailSparkPost from '../../utils/sendMailSparkPost';
 
 /**
  * @description
@@ -99,7 +100,21 @@ export default asyncHandler(
       io.to(`support-${ticket._id.toString()}`).emit('newMessage', {
         message: newMessage,
         ticket: ticket,
-      }); 
+      });
+
+      // finally send a message to the client, or the agent if the client is sending the message
+      await sendMailSparkPost({ template_id: `Template string` }, [
+        {
+          address: {
+            email: isUser ? ticket.requester?.email: ticket.assignee?.email,
+          },
+          substitution_data: {
+            subject: ticket.subject,
+            message: req.body.message,
+            sender: user ? user.fullName : req.body.fullName,
+          },
+        },
+      ]);
       return res.status(201).json({ success: true });
     } catch (err) {
       console.log(err);

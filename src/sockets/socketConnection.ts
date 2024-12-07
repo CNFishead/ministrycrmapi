@@ -15,18 +15,17 @@ export default (io: any) => {
   try {
     io.on('connection', (socket: any) => {
       socket.on('setup', (userData: object) => {
-        console.log('Socket connected');
         setupSocket(socket, userData);
       });
       socket.on('disconnect', () => {
-        console.log('Socket disconnected');
+        // console.log('Socket disconnected');
       });
-      socket.on('join', async (room: { roomId: string; user: string }) => {
+      socket.on('join', async (room: { roomId: string; user: any }) => {
         if (!room.roomId) return;
-        console.log(
-          colors.green(`${room.user} has joined the room`) +
-            colors.blue(` ${room.roomId}`)
-        );
+        // console.log(
+        //   colors.green(`${room.user.fullName} has joined the room`) +
+        //     colors.blue(` ${room.roomId}`)
+        // );
         socket.join(room.roomId);
       });
       socket.on('leave', async (room: { roomId: string; user: string }) => {

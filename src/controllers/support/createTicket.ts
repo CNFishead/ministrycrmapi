@@ -20,8 +20,7 @@ export default asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {
     try {
       //try to authenticate the user in-case they are logged in
-      const user = await authenticateUser(req.headers.authorization);
-      console.log(req.body);
+      const user = await authenticateUser(req.headers.authorization); 
       const newTicket = await Support.create({
         ...req.body,
         requester: user ? user._id : null,
@@ -52,7 +51,7 @@ export default asyncHandler(
           .json({ success: false, message: 'No support groups found..' });
       }
       //update the ticket with the groups that were found
-      newTicket.groups = groups.map((group) => group._id);
+      newTicket.groups = groups.map((group) => group._id) as any;
 
       // next we want to create a message for the ticket
       const message = await SupportMessage.create({

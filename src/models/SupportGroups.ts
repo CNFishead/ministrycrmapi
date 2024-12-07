@@ -1,4 +1,12 @@
 import mongoose from 'mongoose';
+import UserType from '../types/UserType';
+import { SupportType } from './Support';
+
+export type SupportGroupType = {
+  name: string;
+  agents: UserType[];
+  tickets: SupportType[];
+};
 
 const SupportGroupSchema = new mongoose.Schema(
   {

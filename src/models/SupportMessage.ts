@@ -1,4 +1,20 @@
 import mongoose from 'mongoose';
+import { SupportType } from './Support';
+import UserType from '../types/UserType';
+
+export type SupportMessageType = {
+  ticket: SupportType;
+  user: UserType;
+  message: string;
+  sender: {
+    fullName: string;
+    avatarUrl: string;
+  };
+  attachments: {
+    filename: string;
+    url: string;
+  }[];
+};
 
 /**
  * @description Support schema for ticketing system
