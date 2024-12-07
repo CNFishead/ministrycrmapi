@@ -5,6 +5,7 @@ const SupportGroupSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
+      unique: true,
     },
     agents: [
       {
@@ -18,7 +19,6 @@ const SupportGroupSchema = new mongoose.Schema(
         ref: 'Support',
       },
     ],
-    
   },
   {
     timestamps: true,

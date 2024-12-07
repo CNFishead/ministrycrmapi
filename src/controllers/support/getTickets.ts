@@ -1,27 +1,38 @@
 import { Response } from 'express';
 import asyncHandler from '../../middleware/asyncHandler';
-import errorHandler from '../../middleware/error';
-import Notification from '../../models/Notification';
+import error from '../../middleware/error';
 import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
+import mongoose from 'mongoose';
 import parseFilterOptions from '../../utils/parseFilterOptions';
-import parseSortString from '../../utils/parseSortString';
 import parseQueryKeywords from '../../utils/parseQueryKeywords';
+import parseSortString from '../../utils/parseSortString';
+import Ministry from '../../models/Ministry';
+import User from '../../models/User';
+import SupportGroup from '../../models/SupportGroups';
+import Support from '../../models/Support';
 
 /**
- * @description - Returns a number of notifications for the user
- * @access      Private
- * @route       GET /api/notifications
- * @param       {number} limit - number of notifications to return
+ * @description - This function will return all members for a ministry, and all sub ministry members.
+ * @param       {object} req: The request object from the client
+ * @param       {object} res: The response object from the server
+ * @returns     {object[]} members: The members of the ministry
+ *
+ *
+ * @author Austin Howard
+ * @since 1.0
+ * @version 1.0
+ * @lastModifiedBy - Austin Howard
+ * @lastModified - 2023-06-11T11:37:23.000-05:00
  *
  */
 export default asyncHandler(
-  async (req: AuthenticatedRequest, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response, next: any) => {
     try {
       const pageSize = Number(req.query?.limit) || 10;
       const page = Number(req.query?.pageNumber) || 1;
       // Generate the keyword query
       const keywordQuery = parseQueryKeywords(
-        ['subject', 'description', 'notificationType'],
+        ['subject', 'description'],
         req.query?.keyword as string
       );
 
@@ -38,7 +49,7 @@ export default asyncHandler(
           : []), // Only include if there are filters
       ];
 
-      const [data] = await Notification.aggregate([
+      const [data] = await Support.aggregate([
         {
           $match: {
             $and: [
@@ -63,64 +74,40 @@ export default asyncHandler(
               { $limit: pageSize },
               {
                 $lookup: {
-                  from: 'users',
-                  localField: 'userFrom',
+                  from: 'supportgroups',
+                  localField: 'groups',
                   foreignField: '_id',
-                  as: 'userFrom',
+                  as: 'groups',
                   pipeline: [
                     {
                       $project: {
+                        name: 1,
                         _id: 1,
-                        username: 1,
-                        profileImageUrl: 1,
-                        fullName: 1,
                       },
                     },
                   ],
-                },
-              },
-              {
-                $lookup: {
-                  from: 'users',
-                  localField: 'userTo',
-                  foreignField: '_id',
-                  as: 'userTo',
-                  pipeline: [
-                    {
-                      $project: {
-                        _id: 1,
-                        username: 1,
-                        profileImageUrl: 1,
-                        fullName: 1,
-                      },
-                    },
-                  ],
-                },
-              },
-              {
-                $unwind: {
-                  path: '$userFrom',
-                  preserveNullAndEmptyArrays: true,
-                },
-              },
-              {
-                $unwind: {
-                  path: '$userTo',
-                  preserveNullAndEmptyArrays: true,
                 },
               },
             ],
           },
         },
       ]);
-
-      return res.status(200).json({
+      // return the members
+      return res.json({
         success: true,
-        notifications: data.entries,
+        payload: {
+          data: data.entries,
+          page,
+          pages: Math.ceil(data.metadata[0]?.totalCount / pageSize) || 0,
+          totalCount: data.metadata[0]?.totalCount || 0,
+          // pages: Math.ceil(count / pageSize),
+          prevPage: page - 1,
+          nextPage: page + 1,
+        },
       });
-    } catch (error) {
-      console.log(error);
-      errorHandler(error, req, res);
+    } catch (e) {
+      console.log(e);
+      error(e, req, res, next);
     }
   }
 );

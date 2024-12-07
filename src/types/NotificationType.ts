@@ -1,5 +1,5 @@
-import { ObjectId } from "mongoose";
-import UserType from "./UserType";
+import { ObjectId } from 'mongoose';
+import UserType from './UserType';
 
 export default interface NotificationType {
   userTo: UserType;

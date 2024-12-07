@@ -21,7 +21,7 @@ export default asyncHandler(
     try {
       //try to authenticate the user in-case they are logged in
       const user = await authenticateUser(req.headers.authorization);
-
+      console.log(req.body);
       const newTicket = await Support.create({
         ...req.body,
         requester: user ? user._id : null,
@@ -44,6 +44,7 @@ export default asyncHandler(
       const groups = await SupportGroup.find({
         name: { $in: newTicket.category },
       });
+
       // if no groups are found, return a 400 error something went wrong...
       if (!groups.length) {
         return res
@@ -56,7 +57,7 @@ export default asyncHandler(
       // next we want to create a message for the ticket
       const message = await SupportMessage.create({
         ticket: newTicket._id,
-        message: newTicket.description,
+        message: req.body.message,
         // These fields are technically optional, as the messages will be attached
         // to a ticket, which will have the requester and sender fields, but it's
         // good to have them here for reference.
@@ -74,8 +75,7 @@ export default asyncHandler(
           .status(400)
           .json({ success: false, message: 'Message not created..' });
       }
-
-      
+      await newTicket.save();
       return res.status(201).json({ success: true });
     } catch (err) {
       console.log(err);

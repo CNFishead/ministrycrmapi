@@ -54,4 +54,4 @@ const SupportSchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model('Support', SupportSchema);
+export default mongoose.model('SupportMessage', SupportSchema);

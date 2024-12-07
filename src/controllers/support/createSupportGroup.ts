@@ -13,7 +13,7 @@ export default asyncHandler(async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: "Support group not created.." });  
     }
 
-    return res.status(204).json({ success: true});
+    return res.status(200).json({ success: true});
   } catch (err) {
     console.log(err);
     error(err, req, res);

@@ -1,16 +1,30 @@
-import mongoose from "mongoose";
-import NotificationType from "../types/NotificationType";
+import mongoose, { Schema, Model, Document } from 'mongoose';
+import NotificationType from '../types/NotificationType';
 
-const NotificationSchema = new mongoose.Schema(
+interface NotificationAttributes extends NotificationType {
+  // Define any additional fields or methods for the document
+}
+
+interface NotificationModel extends Model<NotificationAttributes> {
+  insertNotification: (
+    userTo: mongoose.Types.ObjectId,
+    userFrom: mongoose.Types.ObjectId,
+    description: string,
+    message: string,
+    notificationType: string,
+    entityId?: mongoose.Types.ObjectId
+  ) => Promise<NotificationAttributes>;
+}
+
+const NotificationSchema = new Schema<NotificationAttributes>(
   {
     userTo: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
-    // if this notification comes from a user, i.e. a comment, like, follow, etc.
     userFrom: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
     message: String,
     description: String,
@@ -26,6 +40,7 @@ const NotificationSchema = new mongoose.Schema(
   }
 );
 
+// Define the static method
 NotificationSchema.statics.insertNotification = async function (
   userTo,
   userFrom,
@@ -42,6 +57,7 @@ NotificationSchema.statics.insertNotification = async function (
     notificationType,
     entityId,
   });
+
   await this.deleteOne({
     userTo,
     userFrom,
@@ -50,7 +66,14 @@ NotificationSchema.statics.insertNotification = async function (
     notificationType,
     entityId,
   }).catch((err: any) => console.log(err));
+
   return await notification.save().catch((err: any) => console.log(err));
 };
 
-export default mongoose.model<NotificationType>("Notification", NotificationSchema);
+// Export the model with proper typing
+const Notification = mongoose.model<NotificationAttributes, NotificationModel>(
+  'Notification',
+  NotificationSchema
+);
+
+export default Notification;

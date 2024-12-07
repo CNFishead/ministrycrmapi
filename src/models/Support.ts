@@ -69,14 +69,11 @@ const SupportSchema = new mongoose.Schema(
       default: 'Low',
     },
     category: {
-      type: String,
+      // is an array of strings, as the ticket can belong to multiple categories
+      type: [String],
+      required: true,
+      // it can be a single category, or multiple categories, of this enum list
       enum: ['General', 'Billing', 'Technical', 'Other'],
-      default: 'General',
-    },
-    subCategory: {
-      type: String,
-      enum: ['General', 'Billing', 'Technical', 'Other'],
-      default: 'General',
     },
     dateSolved: {
       type: Date,
