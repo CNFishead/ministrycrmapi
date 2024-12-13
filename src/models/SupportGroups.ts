@@ -6,6 +6,7 @@ export type SupportGroupType = {
   name: string;
   agents: UserType[];
   tickets: SupportType[];
+  isActive: boolean;
 };
 
 const SupportGroupSchema = new mongoose.Schema(
@@ -27,6 +28,10 @@ const SupportGroupSchema = new mongoose.Schema(
         ref: 'Support',
       },
     ],
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,

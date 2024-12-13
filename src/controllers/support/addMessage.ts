@@ -103,18 +103,18 @@ export default asyncHandler(
       });
 
       // finally send a message to the client, or the agent if the client is sending the message
-      await sendMailSparkPost({ template_id: `Template string` }, [
-        {
-          address: {
-            email: isUser ? ticket.requester?.email: ticket.assignee?.email,
-          },
-          substitution_data: {
-            subject: ticket.subject,
-            message: req.body.message,
-            sender: user ? user.fullName : req.body.fullName,
-          },
-        },
-      ]);
+      // await sendMailSparkPost({ template_id: `Template string` }, [
+      //   {
+      //     address: {
+      //       email: isUser ? ticket.requester?.email: ticket.assignee?.email,
+      //     },
+      //     substitution_data: {
+      //       subject: ticket.subject,
+      //       message: req.body.message,
+      //       sender: user ? user.fullName : req.body.fullName,
+      //     },
+      //   },
+      // ]);
       return res.status(201).json({ success: true });
     } catch (err) {
       console.log(err);

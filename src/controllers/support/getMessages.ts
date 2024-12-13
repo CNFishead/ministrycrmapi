@@ -21,91 +21,80 @@ import SupportMessage from '../../models/SupportMessage';
  * @lastModified - 2023-06-11T11:37:23.000-05:00
  *
  */
-export default asyncHandler(
-  async (req: AuthenticatedRequest, res: Response, next: any) => {
-    try {
-      const pageSize = Number(req.query?.limit) || 10;
-      const page = Number(req.query?.pageNumber) || 1;
-      // Generate the keyword query
-      const keywordQuery = parseQueryKeywords(
-        ['message'],
-        req.query?.keyword as string
-      );
+export default asyncHandler(async (req: AuthenticatedRequest, res: Response, next: any) => {
+  try {
+    const pageSize = Number(req.query?.limit) || 10;
+    const page = Number(req.query?.pageNumber) || 1;
+    // Generate the keyword query
+    const keywordQuery = parseQueryKeywords(['message'], req.query?.keyword as string);
 
-      // Generate the filter options for inclusion if provided
-      const filterIncludeOptions = parseFilterOptions(
-        req.query?.includeOptions as string
-      );
+    // Generate the filter options for inclusion if provided
+    const filterIncludeOptions = parseFilterOptions(req.query?.includeOptions as string);
 
-      // Construct the `$or` array conditionally
-      const orConditions = [
-        ...(Object.keys(keywordQuery[0]).length > 0 ? keywordQuery : []),
-        ...(Object.keys(filterIncludeOptions[0]).length > 0
-          ? filterIncludeOptions
-          : []), // Only include if there are filters
-      ];
-
-      const [data] = await SupportMessage.aggregate([
-        {
-          $match: {
-            $and: [
-              ...parseFilterOptions(req.query?.filterOptions as string), // Apply user filter here
-            ],
-            ...(orConditions.length > 0 && { $or: orConditions }), // Only include `$or` if it has conditions
-          },
+    // Construct the `$or` array conditionally
+    const orConditions = [
+      ...(Object.keys(keywordQuery[0]).length > 0 ? keywordQuery : []),
+      ...(Object.keys(filterIncludeOptions[0]).length > 0 ? filterIncludeOptions : []), // Only include if there are filters
+    ];
+    const [data] = await SupportMessage.aggregate([
+      {
+        $match: {
+          $and: [
+            ...parseFilterOptions(req.query?.filterOptions as string), // Apply user filter here
+          ],
+          ...(orConditions.length > 0 && { $or: orConditions }), // Only include `$or` if it has conditions
         },
-        {
-          $sort: {
-            ...parseSortString(req.query?.sortString as string, 'createdAt;-1'),
-          },
+      },
+      {
+        $sort: {
+          ...parseSortString(req.query?.sortString as string, 'createdAt;-1'),
         },
-        {
-          $facet: {
-            metadata: [
-              { $count: 'totalCount' }, // Count the total number of documents
-              { $addFields: { page, pageSize } }, // Add metadata for the page and page size
-            ],
-            entries: [
-              { $skip: (page - 1) * pageSize },
-              { $limit: pageSize },
-              {
-                $lookup: {
-                  from: 'supportgroups',
-                  localField: 'groups',
-                  foreignField: '_id',
-                  as: 'groups',
-                  pipeline: [
-                    {
-                      $project: {
-                        name: 1,
-                        _id: 1,
-                      },
+      },
+      {
+        $facet: {
+          metadata: [
+            { $count: 'totalCount' }, // Count the total number of documents
+            { $addFields: { page, pageSize } }, // Add metadata for the page and page size
+          ],
+          entries: [
+            { $skip: (page - 1) * pageSize },
+            { $limit: pageSize },
+            {
+              $lookup: {
+                from: 'supportgroups',
+                localField: 'groups',
+                foreignField: '_id',
+                as: 'groups',
+                pipeline: [
+                  {
+                    $project: {
+                      name: 1,
+                      _id: 1,
                     },
-                  ],
-                },
+                  },
+                ],
               },
-            ],
-          },
+            },
+          ],
         },
-      ]);
-      // return the members
-      return res.json({
-        success: true,
-        payload: {
-          data: data.entries,
-          page,
-          pages: Math.ceil(data.metadata[0]?.totalCount / pageSize) || 0,
-          totalCount: data.metadata[0]?.totalCount || 0,
-          // pages: Math.ceil(count / pageSize),
-          prevPage: page - 1,
-          nextPage:
-            page * pageSize < data.metadata[0]?.totalCount ? page + 1 : null,
-          hasMore: page * pageSize < data.metadata[0]?.totalCount, // boolean
-        },
-      });
-    } catch (e) {
-      console.log(e);
-      error(e, req, res, next);
-    }
+      },
+    ]);
+    // return the members
+    return res.json({
+      success: true,
+      payload: {
+        data: data.entries,
+        page,
+        pages: Math.ceil(data.metadata[0]?.totalCount / pageSize) || 0,
+        totalCount: data.metadata[0]?.totalCount || 0,
+        // pages: Math.ceil(count / pageSize),
+        prevPage: page - 1,
+        nextPage: page * pageSize < data.metadata[0]?.totalCount ? page + 1 : null,
+        hasMore: page * pageSize < data.metadata[0]?.totalCount, // boolean
+      },
+    });
+  } catch (e) {
+    console.log(e);
+    error(e, req, res, next);
   }
-);
+});

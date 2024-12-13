@@ -11,11 +11,13 @@ import utilRoutes from './utilRoutes';
 import featureRoutes from './featureRoutes';
 import apikeyRoutes from './apiKeyRoutes';
 import supportRoutes from './supportRoutes';
+import adminRoutes from './adminRoutes/adminRoutes';
 
 const router = express.Router();
 
 // Import all of our routes
 router.use('/auth', authRoutes);
+router.use('/admin', adminRoutes);
 router.use('/family', familyRoutes);
 router.use('/user', userRoutes);
 router.use('/upload', uploadRoutes);
