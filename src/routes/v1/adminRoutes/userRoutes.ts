@@ -1,7 +1,9 @@
 import express from 'express';
-import { admin, protect } from '../../../middleware/auth';
 import getUsers from '../../../controllers/admin/user/getUsers';
+import getUser from '../../../controllers/admin/user/getUser';
+import updateUser from '../../../controllers/admin/user/updateUser';
 const router = express.Router();
 
 router.route('/').get(getUsers);
+router.route('/:id').get(getUser).put(updateUser);
 export default router;

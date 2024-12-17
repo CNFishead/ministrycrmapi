@@ -91,6 +91,10 @@ const UserSchema = new mongoose.Schema(
     phoneNumber: {
       type: String,
     },
+    initialPayment: {
+      type: Date,
+      // required: true,
+    },
     nextPayment: {
       type: Date,
       // required: true,
@@ -122,10 +126,9 @@ const UserSchema = new mongoose.Schema(
       {
         type: String,
         default: 'user',
-        enum: ['user', 'admin', 'moderator'],
+        enum: ['user', 'admin', 'moderator', 'agent', 'support', 'superadmin'],
       },
     ],
-
     fullName: {
       type: String,
     },
@@ -136,6 +139,10 @@ const UserSchema = new mongoose.Schema(
     credits: {
       type: Number,
       default: 0,
+    },
+    isPaidUser: {
+      type: Boolean,
+      default: true,
     },
     isEmailVerified: {
       type: Boolean,
@@ -200,10 +207,7 @@ UserSchema.methods.getResetPasswordToken = async function () {
   // this returns a buffer, we want to make it into a string
   const resetToken = crypto.randomBytes(20).toString('hex');
   // Hash token and set to resetPasswordToken field.
-  this.resetPasswordToken = crypto
-    .createHash('sha256')
-    .update(resetToken)
-    .digest('hex');
+  this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 
   // Set expiration, 10 minutes
   this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
