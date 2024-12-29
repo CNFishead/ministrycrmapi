@@ -63,7 +63,17 @@ export default (filterOptionsString: string) => {
 // Helper function for recursive parsing
 const parseValueRecursively = (parsedValue: any) => {
   if (typeof parsedValue === 'object' && parsedValue !== null) {
-    const allowedOperators = ['$gte', '$lte', '$gt', '$lt', '$eq', '$elemMatch', '$in', '$ne'];
+    const allowedOperators = [
+      '$gte',
+      '$lte',
+      '$gt',
+      '$lt',
+      '$eq',
+      '$elemMatch',
+      '$in',
+      '$ne',
+      '$exists',
+    ];
     return Object.entries(parsedValue).reduce((acc: any, [opKey, opValue]) => {
       if (allowedOperators.includes(opKey)) {
         // If opValue is a nested object, recursively parse it
@@ -72,6 +82,7 @@ const parseValueRecursively = (parsedValue: any) => {
         } else {
           const isValidDate = moment(opValue as string, true).isValid();
           const isNumber = !isNaN(Number(opValue));
+          console.log(opKey);
           if (opKey === '$elemMatch' && typeof opValue === 'string') {
             return (acc[opKey] = { $eq: checkObjectId(opValue) }); // Handle simple string equality for $elemMatch
           } else if (opKey === '$in') {
@@ -80,6 +91,8 @@ const parseValueRecursively = (parsedValue: any) => {
             acc[opKey] = moment(opValue as any).toDate();
           } else if (isNumber) {
             acc[opKey] = Number(opValue);
+          } else if (opKey === null) {
+            acc[opKey] = null;
           } else {
             acc[opKey] = checkObjectId(opValue as string);
           }
