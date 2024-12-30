@@ -23,7 +23,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { _id: string };
     const user = await User.findById(decoded._id);
     if (!user) {
-      return res.status(200).json({ message: "No User Found, token failed" });
+      return res.status(400).json({ message: "No User Found, token failed" });
     } else {
       if (user.isActive === false) {
         return res.status(200).json({ message: "Not authorized, token failed" });

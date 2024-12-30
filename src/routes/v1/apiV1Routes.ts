@@ -12,6 +12,7 @@ import featureRoutes from './featureRoutes';
 import apikeyRoutes from './apiKeyRoutes';
 import supportRoutes from './supportRoutes';
 import adminRoutes from './adminRoutes/adminRoutes';
+import legalRoutes from './legalRoutes';
 
 const router = express.Router();
 
@@ -29,5 +30,6 @@ router.use('/util', utilRoutes);
 router.use('/feature', featureRoutes);
 router.use('/apikey', apikeyRoutes);
 router.use('/support', supportRoutes);
+router.use('/legal', legalRoutes);
 
 export default router;
