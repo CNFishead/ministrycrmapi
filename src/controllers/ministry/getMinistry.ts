@@ -47,12 +47,17 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
         },
       },
     ]);
+    console.log(`Ministry: `);
+    console.log(ministry);
 
     // if the leader object is null, check try to find the leader object through the user model
     if (!ministry[0].leader) {
+      console.log("Leader is null");
       const ministryLeader = await Ministry.findById(req.params?.id);
       const leader = await User.findById(ministryLeader?.leader);
       ministry[0].leader = leader;
+      console.log(`Leader: ${leader}`);
+      console.log(`Ministry: ${ministry}`);
     }
     if (!ministry[0]) {
       console.log(ministry);
