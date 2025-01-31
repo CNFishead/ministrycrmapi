@@ -55,6 +55,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
       ministry[0].leader = leader;
     }
     if (!ministry[0]) {
+      console.log(ministry);
       return res.status(404).json({ message: "Ministry not found" });
     }
     return res.json({
