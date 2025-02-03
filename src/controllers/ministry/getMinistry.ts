@@ -1,9 +1,9 @@
-import asyncHandler from "../../middleware/asyncHandler";
-import User from "../../models/User";
-import { Response, Request } from "express";
-import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
-import Ministry from "../../models/Ministry";
-import mongoose from "mongoose";
+import asyncHandler from '../../middleware/asyncHandler';
+import User from '../../models/User';
+import { Response, Request } from 'express';
+import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
+import Ministry from '../../models/Ministry';
+import mongoose from 'mongoose';
 /**
  * @description: This function returns the result of a ministry object to the frontend
  * @param       {object} req: The request object from the client
@@ -26,42 +26,52 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
       },
       {
         $lookup: {
-          from: "members",
-          localField: "leader",
-          foreignField: "_id",
-          as: "leader",
+          from: 'users',
+          localField: 'user',
+          foreignField: '_id',
+          as: 'user',
         },
       },
       {
         $lookup: {
-          from: "members",
-          localField: "members",
-          foreignField: "_id",
-          as: "members",
+          from: 'members',
+          localField: 'leader',
+          foreignField: '_id',
+          as: 'leader',
+        },
+      },
+      {
+        $lookup: {
+          from: 'members',
+          localField: 'members',
+          foreignField: '_id',
+          as: 'members',
         },
       },
       {
         $unwind: {
-          path: "$leader",
+          path: '$leader',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $unwind: {
+          path: '$user',
           preserveNullAndEmptyArrays: true,
         },
       },
     ]);
-    console.log(`Ministry: `);
-    console.log(ministry);
-
     // if the leader object is null, check try to find the leader object through the user model
-    if (!ministry[0].leader) {
-      console.log("Leader is null");
+    if (!ministry[0]?.leader) {
       const ministryLeader = await Ministry.findById(req.params?.id);
       const leader = await User.findById(ministryLeader?.leader);
+      if (!leader) {
+        return res.status(404).json({ message: 'Leader not found' });
+      }
       ministry[0].leader = leader;
-      console.log(`Leader: ${leader}`);
-      console.log(`Ministry: ${ministry}`);
     }
     if (!ministry[0]) {
-      console.log(ministry);
-      return res.status(404).json({ message: "Ministry not found" });
+      return res.status(404).json({ message: 'Ministry not found' });
     }
     return res.json({
       success: true,

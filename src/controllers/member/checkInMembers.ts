@@ -1,14 +1,14 @@
-import asyncHandler from "../../middleware/asyncHandler";
-import { Response } from "express";
-import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
-import error from "../../middleware/error";
-import Family from "../../models/Family";
-import Member from "../../models/Member";
-import MemberType from "../../types/MemberType";
-import moment from "moment";
-import Ministry from "../../models/Ministry";
-import mongoose from "mongoose";
-import User from "../../models/User";
+import asyncHandler from '../../middleware/asyncHandler';
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
+import error from '../../middleware/error';
+import Family from '../../models/Family';
+import Member from '../../models/Member';
+import MemberType from '../../types/MemberType';
+import moment from 'moment';
+import Ministry from '../../models/Ministry';
+import mongoose from 'mongoose';
+import User from '../../models/User';
 /**
  * @description: This function will check in members for a ministry.
  * @param       {object} req: The request object from the client
@@ -23,14 +23,14 @@ import User from "../../models/User";
  */
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response, next: any) => {
   try { 
-    const { visitors, familyName } = req.body.data;
+    const { visitors, familyName } = req.body;
     // we need to make sure that the visitors array is not empty.
     if (!visitors || visitors.length === 0) {
-      return res.status(400).json({ message: "Visitors array is required", success: false });
+      return res.status(400).json({ message: 'Visitors array is required', success: false });
     }
     const ministry = await Ministry.findById(req.params.id);
     if (!ministry) {
-      return res.status(400).json({ message: "Ministry not found", success: false });
+      return res.status(400).json({ message: 'Ministry not found', success: false });
     }
 
     // next we want to check if any of the visitors are already members of the ministry.
@@ -39,7 +39,9 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     // for every visitor not part of the family object, add them to the family object.
     // if the family object does not exist, then create a new family object.
     // console.log(`familyName: ${familyName}`);
-    const family = await Family.findOne({ name: familyName, user: ministry.user }).populate("members");
+    const family = await Family.findOne({ name: familyName, user: ministry.user }).populate(
+      'members'
+    );
     // console.log(family);
     if (!family) {
       // create a new family object.
@@ -48,7 +50,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
         user: ministry.user,
       });
       if (!newFamily) {
-        return res.status(400).json({ message: "Error creating family", success: false });
+        return res.status(400).json({ message: 'Error creating family', success: false });
       }
 
       // we need to create a member object for each visitor, and add them to the family objects members array.
@@ -59,7 +61,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
         // check them as a child.
         let isChild = false;
         if (visitor.birthday !== undefined) {
-          isChild = moment().diff(visitor.birthday, "years") < 16;
+          isChild = moment().diff(visitor.birthday, 'years') < 16;
         }
 
         // create a new member object.
@@ -70,7 +72,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
           isChild,
         });
         if (!newMember) {
-          return res.status(400).json({ message: "Error creating member", success: false });
+          return res.status(400).json({ message: 'Error creating member', success: false });
         }
         await Ministry.findByIdAndUpdate(ministry._id, { $push: { members: newMember._id } });
         // add the member to the family object.
@@ -89,7 +91,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       if (v?._id) {
         const member = await Member.findById(v._id);
         if (!member) {
-          res.status(400).json({ message: "Member not found", success: false });
+          res.status(400).json({ message: 'Member not found', success: false });
           continue; // Skip to the next visitor if member not found
         }
         // console.log(`Member exists: ${member.fullName}`); // member exists, so we need to check them in.
@@ -116,7 +118,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
         // console.log(`Member does not exist: ${v.firstName}`); // member does not exist, so we need to create a new member object.
         let isChild = false;
         if (v.birthday !== undefined) {
-          isChild = moment().diff(v.birthday, "years") < 16;
+          isChild = moment().diff(v.birthday, 'years') < 16;
         }
         const newMember = await Member.create({
           ...v,
@@ -126,7 +128,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
         });
         if (!newMember) {
           console.log(`Error creating member: ${v.firstName}`); // Error creating member
-          res.status(400).json({ message: "Error creating member", success: false });
+          res.status(400).json({ message: 'Error creating member', success: false });
           continue; // Skip to the next visitor if error creating member
         }
         await Ministry.findByIdAndUpdate(ministry._id, { $push: { members: newMember._id } });
