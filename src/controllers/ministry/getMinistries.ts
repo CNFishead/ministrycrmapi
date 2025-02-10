@@ -1,13 +1,13 @@
-import { Response } from "express";
-import asyncHandler from "../../middleware/asyncHandler";
-import error from "../../middleware/error";
-import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
-import mongoose from "mongoose";
-import parseFilterOptions from "../../utils/parseFilterOptions";
-import parseQueryKeywords from "../../utils/parseQueryKeywords";
-import parseSortString from "../../utils/parseSortString";
-import Ministry from "../../models/Ministry";
-import User from "../../models/User";
+import { Response } from 'express';
+import asyncHandler from '../../middleware/asyncHandler';
+import error from '../../middleware/error';
+import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
+import mongoose from 'mongoose';
+import parseFilterOptions from '../../utils/parseFilterOptions';
+import parseQueryKeywords from '../../utils/parseQueryKeywords';
+import parseSortString from '../../utils/parseSortString';
+import Ministry from '../../models/Ministry';
+import User from '../../models/User';
 
 /**
  * @description - This function will return all members for a ministry, and all sub ministry members.
@@ -29,7 +29,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     const page = Number(req.query?.pageNumber) || 1;
     // Generate the keyword query
     const keywordQuery = parseQueryKeywords(
-      ["name", "description", "[ministryType.name]", "leader", "members"],
+      ['name', 'description', '[ministryType.name]', 'leader', 'members'],
       req.query?.keyword as string
     );
 
@@ -41,7 +41,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       ...(Object.keys(keywordQuery[0]).length > 0 ? keywordQuery : []),
       ...(Object.keys(filterIncludeOptions[0]).length > 0 ? filterIncludeOptions : []), // Only include if there are filters
     ];
- 
+
     const [data] = await Ministry.aggregate([
       {
         $match: {
@@ -53,13 +53,13 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       },
       {
         $sort: {
-          ...parseSortString(req.query?.sortString as string, "createdAt;-1"),
+          ...parseSortString(req.query?.sortString as string, 'createdAt;-1'),
         },
       },
       {
         $facet: {
           metadata: [
-            { $count: "totalCount" }, // Count the total number of documents
+            { $count: 'totalCount' }, // Count the total number of documents
             { $addFields: { page, pageSize } }, // Add metadata for the page and page size
           ],
           entries: [
@@ -67,15 +67,15 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
             { $limit: pageSize },
             {
               $lookup: {
-                from: "members",
-                localField: "leader",
-                foreignField: "_id",
-                as: "leader",
+                from: 'members',
+                localField: 'leader',
+                foreignField: '_id',
+                as: 'leader',
               },
             },
             {
               $unwind: {
-                path: "$leader",
+                path: '$leader',
                 preserveNullAndEmptyArrays: true,
               },
             },
@@ -95,16 +95,17 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
         }
       }
     }
-
     // return the members
     return res.json({
-      ministries: data.entries,
-      page,
-      pages: Math.ceil(data.metadata[0]?.totalCount / pageSize) || 0,
-      totalCount: data.metadata[0]?.totalCount || 0,
-      // pages: Math.ceil(count / pageSize),
-      prevPage: page - 1,
-      nextPage: page + 1,
+      payload: [...data.entries],
+      pagination: {
+        page,
+        pages: Math.ceil(data.metadata[0]?.totalCount / pageSize) || 0,
+        totalCount: data.metadata[0]?.totalCount || 0,
+        // pages: Math.ceil(count / pageSize),
+        prevPage: page - 1,
+        nextPage: page + 1,
+      },
     });
   } catch (e) {
     console.log(e);
