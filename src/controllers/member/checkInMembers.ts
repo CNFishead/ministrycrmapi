@@ -9,6 +9,7 @@ import moment from 'moment';
 import Ministry from '../../models/Ministry';
 import mongoose from 'mongoose';
 import User from '../../models/User';
+import CheckInRecord from '../../models/CheckInRecord';
 /**
  * @description: This function will check in members for a ministry.
  * @param       {object} req: The request object from the client
@@ -22,7 +23,7 @@ import User from '../../models/User';
  *
  */
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response, next: any) => {
-  try { 
+  try {
     const { visitors, familyName } = req.body;
     // we need to make sure that the visitors array is not empty.
     if (!visitors || visitors.length === 0) {
@@ -32,6 +33,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     if (!ministry) {
       return res.status(400).json({ message: 'Ministry not found', success: false });
     }
+    const timestamp = new Date(); // current timestamp to be used for check-in
 
     // next we want to check if any of the visitors are already members of the ministry.
     // we can do this by checking the familyName field against a Family object, if their is a match, then we can assume that they are a member.
@@ -68,7 +70,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
         const newMember = await Member.create({
           ...visitor,
           user: ministry.user,
-          dateLastVisited: new Date(),
+          dateLastVisited: timestamp,
           isChild,
         });
         if (!newMember) {
@@ -86,7 +88,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     // console.log(visitors.length);
     // family object exists, so we need to loop over each visitor, match it to a member, and check them in.
     for (const v of visitors) {
-      console.log(`Checking in visitor: ${v.firstName}`); // checking in visitor
+      // console.log(`Checking in visitor: ${v.firstName}`); // checking in visitor
       // console.log(v._id);
       if (v?._id) {
         const member = await Member.findById(v._id);
@@ -100,7 +102,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
           member._id,
           {
             ...v, // updates the member object fields with relevant data if changed on frontend
-            dateLastVisited: new Date(),
+            dateLastVisited: timestamp,
           },
           { new: true, runValidators: true }
         );
@@ -109,6 +111,13 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
           ministry.members.push(ministry._id as any);
         }
         // console.log(`Added member to ministry: ${member.fullName}`);
+        // now we want to create a CheckInRecord object for the member.
+        await CheckInRecord.create({
+          member: member._id,
+          ministry: ministry._id,
+          checkInDate: timestamp,
+        });
+
         // save the member object.
         await member.save();
         await ministry.save();
@@ -123,7 +132,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
         const newMember = await Member.create({
           ...v,
           user: ministry.user,
-          dateLastVisited: new Date(),
+          dateLastVisited: timestamp,
           isChild,
         });
         if (!newMember) {
@@ -131,6 +140,12 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
           res.status(400).json({ message: 'Error creating member', success: false });
           continue; // Skip to the next visitor if error creating member
         }
+        // checkinrecord object
+        await CheckInRecord.create({
+          member: newMember._id,
+          ministry: ministry._id,
+          checkInDate: timestamp,
+        });
         await Ministry.findByIdAndUpdate(ministry._id, { $push: { members: newMember._id } });
         await Family.findByIdAndUpdate(family._id, { $push: { members: newMember._id } });
       }
