@@ -19,6 +19,7 @@ const CheckInRecordSchema: Schema = new Schema({
   member: { type: Schema.Types.ObjectId, required: true, ref: 'Member' },
   ministry: { type: Schema.Types.ObjectId, required: true, ref: 'Ministry' },
   checkInDate: { type: Date, default: Date.now },
+  processed: { type: Boolean, default: false }, // Flag to indicate if the check-in has been processed, to avoid double counting and multiple queries
 });
 
 export default mongoose.model<CheckInRecord>('Check', CheckInRecordSchema);
