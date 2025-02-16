@@ -10,7 +10,7 @@ const router = express.Router();
 
 // Import all of our routes
 router.use(protect());
-router.route('/').post(createMember);
+router.route('/').post(createMember).get(getMembers);
 router.route('/data').get(memberCheckInData);
 router.route('/:memberId').delete(deleteMember);
 router.route('/:memberId/update').put(updateMember);
