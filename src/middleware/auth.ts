@@ -32,10 +32,7 @@ const protect = (routes?: any) => {
         // Look up the API key in the database
 
         // encrypt the api key so that it can be compared to the encrypted api key in the database
-        const encryptedApiKey = hashApiKey(
-          apiKey,
-          process.env.SECRET_KEY_VERSION as any
-        ).hash;
+        const encryptedApiKey = hashApiKey(apiKey, process.env.SECRET_KEY_VERSION as any).hash;
 
         const apiRecord = await ApiKeySchema.findOne({
           apiKey: encryptedApiKey,
@@ -46,9 +43,7 @@ const protect = (routes?: any) => {
           // ensure the api key is not expired, by seeing if its older than the current date
           moment().isAfter(apiRecord.expiresAt)
         ) {
-          return res
-            .status(403)
-            .json({ message: 'Not authorized, API key is invalid or expired' });
+          return res.status(403).json({ message: 'Not authorized, API key is invalid or expired' });
         }
 
         // Attach the user associated with the API key to req.user
@@ -57,38 +52,28 @@ const protect = (routes?: any) => {
 
         return next();
       } catch (e) {
-        return res
-          .status(403)
-          .json({ message: 'Not authorized, API key validation failed' });
+        return res.status(403).json({ message: 'Not authorized, API key validation failed' });
       }
     }
 
-    if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith('Bearer')
-    ) {
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
       try {
         // get the token from the headers
         token = req.headers.authorization.split(' ')[1];
         // decode the token
-        const decoded = jwt.verify(
-          token,
-          process.env.JWT_SECRET as string
-        ) as JwtPayload;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
         // find the user in the database
         req.user = await User.findById(decoded._id).select('-password');
         req.user.token = token;
 
         next();
-      } catch (e) {
+      } catch (e: any) {
         //console.log(e)
-        return res
-          .status(403)
-          .json({ message: 'Not authorized, token failed1' });
+        return res.status(403).json({ message: 'Not authorized, token failed', error: e.message });
       }
     }
     if (!token) {
-      return res.status(403).json({ message: 'Not authorized, token failed2' });
+      return res.status(403).json({ message: 'No Token Found' });
     }
   };
 };

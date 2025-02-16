@@ -38,7 +38,6 @@ export default asyncHandler(
         ...(Object.keys(keywordQuery[0]).length > 0 ? keywordQuery : []),
         ...(Object.keys(filterIncludeOptions[0]).length > 0 ? filterIncludeOptions : []), // Only include if there are filters
       ];
-
       const [data] = await Family.aggregate([
         {
           $match: {
@@ -70,20 +69,26 @@ export default asyncHandler(
                   localField: 'members',
                   foreignField: '_id',
                   as: 'members',
+                  pipeline: [
+                    { $project: { fullName: 1, email: 1, phone: 1, profileImageUrl: 1 } }, // Project only necessary fields
+                    { $sort: { fullName: 1 } }, // Sort the members by first name
+                  ],
                 },
               },
             ],
           },
         },
-      ]); 
+      ]);
       return res.json({
-        data: data.entries,
-        page,
-        pages: Math.ceil(data.metadata[0]?.totalCount / pageSize) || 0,
-        totalCount: data.metadata[0]?.totalCount || 0,
-        // pages: Math.ceil(count / pageSize),
-        prevPage: page - 1,
-        nextPage: page + 1,
+        payload: [...data.entries],
+        pagination: {
+          page,
+          pages: Math.ceil(data.metadata[0]?.totalCount / pageSize) || 0,
+          totalCount: data.metadata[0]?.totalCount || 0,
+          // pages: Math.ceil(count / pageSize),
+          prevPage: page - 1,
+          nextPage: page + 1,
+        },
       });
     } catch (err) {
       console.log(err);

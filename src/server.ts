@@ -13,6 +13,7 @@ import cors from 'cors';
 import nodemon from 'nodemon';
 import colors from 'colors';
 import socket from './utils/socket';
+import { cronJobs } from './cronjobs/cronjobs';
 // Routes
 //const middlewares
 const mongoSanitize = require('express-mongo-sanitize');
@@ -29,7 +30,6 @@ db();
 const app = express();
 
 const PORT = Number(process.env.PORT) || 5000;
-// cronJobs();
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -81,11 +81,10 @@ app.get('/', (req: Request, res: Response) => {
   res.send('API is running... Shepherds of Christ Ministries');
 });
 
-const server = app.listen(PORT, () =>
-  console.log(
-    `Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold
-  )
-);
+const server = app.listen(PORT, () => {
+  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold);
+  cronJobs();
+});
 
 socket.init(server);
 const io = socket.getIO();

@@ -63,8 +63,4 @@ export default async function aggregateCheckIns() {
     console.error('Error in check-in aggregation:', error);
   }
 }
-
-// Run the function
-aggregateCheckIns()
-  .then(() => mongoose.connection.close()) // Close DB connection after execution
-  .catch(console.error);
+ 

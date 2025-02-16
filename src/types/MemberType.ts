@@ -1,5 +1,5 @@
-import mongoose from "mongoose";
-import { ObjectId } from "mongoose";
+import mongoose from 'mongoose';
+import { ObjectId } from 'mongoose';
 
 /**
  * @description - Member Schema Type
@@ -10,7 +10,7 @@ import { ObjectId } from "mongoose";
  * @lastModified - 2023-06-11T16:20:04.000-05:00
  */
 export default interface MemberType extends mongoose.Document {
-  _id: ObjectId;
+  _id: ObjectId | string;
   user: ObjectId;
   firstName: string;
   lastName: string;

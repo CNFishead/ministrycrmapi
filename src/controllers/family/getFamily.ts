@@ -53,7 +53,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
         },
       },
     ]);
-    console.log(family);
+    // console.log(family);
     if (!family) {
       return res.status(401).json({ success: false, message: "Family not found" });
     }

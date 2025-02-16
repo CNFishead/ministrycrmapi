@@ -82,7 +82,7 @@ const parseValueRecursively = (parsedValue: any) => {
         } else {
           const isValidDate = moment(opValue as string, true).isValid();
           const isNumber = !isNaN(Number(opValue));
-          console.log(opKey);
+          // console.log(opKey);
           if (opKey === '$elemMatch' && typeof opValue === 'string') {
             return (acc[opKey] = { $eq: checkObjectId(opValue) }); // Handle simple string equality for $elemMatch
           } else if (opKey === '$in') {

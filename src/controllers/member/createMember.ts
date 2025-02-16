@@ -1,13 +1,13 @@
-import asyncHandler from "../../middleware/asyncHandler";
-import User from "../../models/User";
-import { Response, Request } from "express";
-import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
-import error from "../../middleware/error";
-import Ministry from "../../models/Ministry";
-import Member from "../../models/Member";
-import Family from "../../models/Family";
-import MemberType from "../../types/MemberType";
-import moment from "moment";
+import asyncHandler from '../../middleware/asyncHandler';
+import User from '../../models/User';
+import { Response, Request } from 'express';
+import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
+import error from '../../middleware/error';
+import Ministry from '../../models/Ministry';
+import Member from '../../models/Member';
+import Family from '../../models/Family';
+import MemberType from '../../types/MemberType';
+import moment from 'moment';
 /**
  * @description: This function will create a new member for the ministry.
  * @param       {object} req: The request object from the client
@@ -28,9 +28,10 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     // we also need to ensure that the family object has a member of age 18 or greater.
     // convert the birthday to a date object.
     // console.log(req.body);
-    if (!req.body.birthday) return res.status(400).json({ message: "Birthday is required", success: false });
+    if (!req.body.birthday)
+      return res.status(400).json({ message: 'Birthday is required', success: false });
     // ? add 1 day to the birthday to make sure that we are getting the correct age
-    const birthday = moment(req.body.birthday).startOf("day").toDate();
+    const birthday = moment(req.body.birthday).startOf('day').toDate();
     // get the current date.
     const today = new Date();
     // get the difference in years.
@@ -45,12 +46,15 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     if (age < 18) {
       // if the family id is not provided, then we need to throw an error.
       if (!req.body.family) {
-        return res.status(400).json({ message: "Association to a Family is required, when adding a member under the age of 18", success: false });
+        return res.status(400).json({
+          message: 'Association to a Family is required, when adding a member under the age of 18',
+          success: false,
+        });
       }
       // if the family id is provided, then we need to make sure that the family exists.
-      const family = await Family.findById(req.body.family).populate("members");
+      const family = await Family.findById(req.body.family).populate('members');
       if (!family) {
-        return res.status(400).json({ message: "Family does not exist", success: false });
+        return res.status(400).json({ message: 'Family does not exist', success: false });
       }
       // if the family exists, then we need to make sure that there is a member of age 18 or greater.
       const adult = family.members.find((member: any) => {
@@ -72,17 +76,30 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       });
       // if there is no adult in the family, then we need to throw an error.
       if (!adult) {
-        return res.status(400).json({ message: "Family must have an adult member", success: false });
+        return res
+          .status(400)
+          .json({ message: 'Family must have an adult member', success: false });
       }
 
-      return res.status(400).json({ message: "Birthday is required", success: false });
+      return res.status(400).json({ message: 'Birthday is required', success: false });
     }
-    const member = await Member.create({ ...req.body });
-    if (!member) return res.status(400).json({ message: "Unable to create Member", success: false });
+    const member = await Member.create({ ...req.body, user: req.user._id });
+    if (!member)
+      return res.status(400).json({ message: 'Unable to create Member', success: false });
+    // add the member to the family object
+    const family = await Family.findById(req.body.family._id);
+    if (family) {
+      //@ts-ignore
+      if (!family.members.includes(member._id)) {
+        //@ts-ignore - we know that the member._id is of type ObjectId, so we can ignore the type error.
+        family.members.push(member._id);
+        await family.save();
+      }
+    }
     return res.status(201).json({
-      message: "Member created",
+      message: 'Member created',
       success: true,
-      // data: member
+      data: { _id: member._id },
     });
   } catch (e: any) {
     console.log(e);
