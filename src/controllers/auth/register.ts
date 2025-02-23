@@ -99,6 +99,7 @@ export default asyncHandler(async (req: Request, res: Response) => {
     const ministry = await Ministry.create({
       leader: member._id,
       ...req.body.ministryInfo,
+      isMainMinistry: true,
     });
 
     // if the ministry object is not created, we need to delete the user and member objects

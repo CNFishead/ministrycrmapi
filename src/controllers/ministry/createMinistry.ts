@@ -26,10 +26,10 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
     // find the main ministry
     const mainMinistry = await Ministry.findById(mainMinistryId);
     // if the main ministry doesn't exist, return an error
-    if (!mainMinistry) {
+    // or if the main ministry is not the main ministry, return an error
+    if (!mainMinistry || mainMinistry.isMainMinistry === false) {
       return res.status(404).json({ message: "Main Ministry not found" });
     }
-    console.log(req.body);
 
     // check that a leader is passed in
     const leader = req.body?.leader;
@@ -41,6 +41,9 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
       ...req.body,
       user: req.user._id,
       ownerMinistry: mainMinistryId,
+      // further delineate the ministry type as a subMinistry, this is optional but useful
+      // for filtering and other purposes
+      isSubMinistry: true,
     });
     // check that it was created
     if (!ministry) {

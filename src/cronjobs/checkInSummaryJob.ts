@@ -16,9 +16,22 @@ export default async function aggregateCheckIns() {
           _id: {
             date: { $dateToString: { format: '%Y-%m-%d', date: '$checkInDate' } }, // Group by date
             ministryId: '$ministry',
+            locationType: '$location', // Group by location type
           },
           totalCheckIns: { $sum: 1 },
           records: { $push: '$_id' }, // Collect record IDs
+        },
+      },
+      {
+        $group: {
+          _id: { date: '$_id.date', ministryId: '$_id.ministryId' },
+          checkIns: {
+            $push: {
+              locationType: '$_id.locationType',
+              count: '$checkInCount',
+            },
+          },
+          records: { $push: '$records' },
         },
       },
     ]);
@@ -27,11 +40,17 @@ export default async function aggregateCheckIns() {
       console.log('✅ No new check-ins to process.');
       return;
     }
-    // Upsert into CheckInSummary
-    for (const record of checkIns) {
+     // Upsert into CheckInSummary
+     for (const record of checkIns) {
+      // Convert checkIns array into a key-value object dynamically
+      const checkInMap = {} as Record<string, number>;
+      for (const checkIn of record.checkIns) {
+        checkInMap[checkIn.locationType] = checkIn.count;
+      }
+
       await CheckInSummary.updateOne(
         { date: new Date(record._id.date), ministry: record._id.ministryId },
-        { $set: { totalCheckIns: record.totalCheckIns } },
+        { $inc: checkInMap }, // Dynamically update only the locations present
         { upsert: true }
       );
     }
@@ -52,7 +71,7 @@ export default async function aggregateCheckIns() {
       console.log(`✅ Marked ${processedIds.length} check-ins as processed.`);
     }
 
-    // Optional: Delete processed check-ins from CheckInRecords that are older than 60 days
+    // Delete processed check-ins from CheckInRecords that are older than 60 days
     await CheckInRecord.deleteMany({
       checkInDate: { $lt: new Date(new Date().setDate(new Date().getDate() - 60)) },
       processed: true,
@@ -63,4 +82,3 @@ export default async function aggregateCheckIns() {
     console.error('Error in check-in aggregation:', error);
   }
 }
- 

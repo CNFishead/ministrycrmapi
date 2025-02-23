@@ -4,6 +4,8 @@ export interface CheckInRecord extends Document {
   _id: mongoose.Types.ObjectId;
   member: mongoose.Types.ObjectId;
   ministry: mongoose.Types.ObjectId;
+  location: string;
+  processed: boolean;
   checkInDate: Date;
 }
 
@@ -19,6 +21,7 @@ const CheckInRecordSchema: Schema = new Schema({
   member: { type: Schema.Types.ObjectId, required: true, ref: 'Member' },
   ministry: { type: Schema.Types.ObjectId, required: true, ref: 'Ministry' },
   checkInDate: { type: Date, default: Date.now },
+  location: { type: String, required: true, enum: ['in-person', 'online', 'event'] }, // Location where the check-in occurred, e.g., 'Online', 'Church', 'Event'
   processed: { type: Boolean, default: false }, // Flag to indicate if the check-in has been processed, to avoid double counting and multiple queries
 });
 

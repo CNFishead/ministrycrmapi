@@ -4,7 +4,7 @@ export interface CheckInSummary extends Document {
   _id: mongoose.Types.ObjectId;
   date: Date; // date of the summary check-in
   ministry: mongoose.Types.ObjectId; // ministry the check-in is for
-  totalCheckIns: number; // total number of check-ins for the day
+  totalCheckIns: Map<string, number>; // dynamic key-value store for total check-ins
 }
 
 /**
@@ -18,7 +18,7 @@ export interface CheckInSummary extends Document {
 const CheckInSummarySchema: Schema = new Schema({
   date: { type: Date, required: true },
   ministry: { type: Schema.Types.ObjectId, required: true, ref: 'Ministry' },
-  totalCheckIns: { type: Number, required: true },
+  totalCheckIns: { type: Map, of: Number, default: {} } // Dynamic key-value store
 });
 
 export default mongoose.model<CheckInSummary>('CheckSummary', CheckInSummarySchema);

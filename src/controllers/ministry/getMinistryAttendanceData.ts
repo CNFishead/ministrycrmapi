@@ -27,8 +27,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
       ...(Object.keys(keywordQuery[0]).length > 0 ? keywordQuery : []),
       ...(Object.keys(filterIncludeOptions[0]).length > 0 ? filterIncludeOptions : []), // Only include if there are filters
     ];
-
-    console.log(...parseFilterOptions(req.query?.filterOptions as string));
+ 
     const [data] = await CheckInSummary.aggregate([
       {
         $match: {
@@ -44,6 +43,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
             date: { $dateToString: { format: '%Y-%m-%d', date: '$date' } }, // Group by date (YYYY-MM-DD format)
           },
           count: { $sum: '$totalCheckIns' }, // Sum all check-ins for the date
+          checkIns: { $mergeObjects: '$totalCheckIns' }, // Merge all check-ins into a single object
         },
       },
       {

@@ -70,7 +70,15 @@ export default asyncHandler(
                   foreignField: '_id',
                   as: 'members',
                   pipeline: [
-                    { $project: { fullName: 1, email: 1, phone: 1, profileImageUrl: 1 } }, // Project only necessary fields
+                    {
+                      $project: {
+                        fullName: 1,
+                        email: 1,
+                        phone: 1,
+                        profileImageUrl: 1,
+                        dateLastVisited: 1,
+                      },
+                    }, // Project only necessary fields
                     { $sort: { fullName: 1 } }, // Sort the members by first name
                   ],
                 },

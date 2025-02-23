@@ -27,7 +27,6 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
   try {
     const pageSize = Number(req.query?.limit) || 10;
     const page = Number(req.query?.pageNumber as string) || 1;
-    const ministryId = req.params?.ministryId as string;
     // Generate the keyword query
     const keywordQuery = parseQueryKeywords(['name', 'tags'], req.query?.keyword as string);
 
