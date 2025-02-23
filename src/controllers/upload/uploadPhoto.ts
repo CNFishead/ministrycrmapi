@@ -4,8 +4,7 @@ import { Response } from "express";
 import slugify from "slugify";
 import path from "path";
 import { UploadedFile } from "express-fileupload";
-import Ministry from "../../models/Ministry";
-import MinistryType from "../../types/MinistryType";
+import Ministry, { MinistryType } from "../../models/Ministry"; 
 import error from "../../middleware/error";
 import fs from "fs";
 
