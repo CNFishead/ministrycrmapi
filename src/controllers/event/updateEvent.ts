@@ -38,8 +38,8 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       req.params?.id,
       {
         ...req.body,
-        startDate: req.body.dates[0],
-        endDate: req.body.dates[1],
+        // startDate: req.body.dates[0],
+        // endDate: req.body.dates[1],
       },
       {
         new: true,

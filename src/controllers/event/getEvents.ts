@@ -1,11 +1,11 @@
-import asyncHandler from "../../middleware/asyncHandler";
-import { Response } from "express";
-import parseFilterOptions from "../../utils/parseFilterOptions";
-import parseQueryKeywords from "../../utils/parseQueryKeywords";
-import parseSortString from "../../utils/parseSortString";
-import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
-import error from "../../middleware/error";
-import Event from "../../models/Event";
+import asyncHandler from '../../middleware/asyncHandler';
+import { Response } from 'express';
+import parseFilterOptions from '../../utils/parseFilterOptions';
+import parseQueryKeywords from '../../utils/parseQueryKeywords';
+import parseSortString from '../../utils/parseSortString';
+import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
+import error from '../../middleware/error';
+import Event from '../../models/Event';
 
 /**
  * @description: This function returns paginated data in the system
@@ -23,7 +23,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
     const pageSize = Number(req.query?.limit) || 10;
     const page = Number(req.query?.pageNumber as string) || 1;
     // Generate the keyword query
-    const keywordQuery = parseQueryKeywords(["name", "tags"], req.query?.keyword as string);
+    const keywordQuery = parseQueryKeywords(['name', 'tags'], req.query?.keyword as string);
 
     // Generate the filter options for inclusion if provided
     const filterIncludeOptions = parseFilterOptions(req.query?.includeOptions as string);
@@ -33,7 +33,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
       ...(Object.keys(keywordQuery[0]).length > 0 ? keywordQuery : []),
       ...(Object.keys(filterIncludeOptions[0]).length > 0 ? filterIncludeOptions : []), // Only include if there are filters
     ];
- 
+
     const [data] = await Event.aggregate([
       {
         $match: {
@@ -45,13 +45,13 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
       },
       {
         $sort: {
-          ...parseSortString(req.query?.sortString as string, "createdAt;-1"),
+          ...parseSortString(req.query?.sortString as string, 'createdAt;-1'),
         },
       },
       {
         $facet: {
           metadata: [
-            { $count: "totalCount" }, // Count the total number of documents
+            { $count: 'totalCount' }, // Count the total number of documents
             { $addFields: { page, pageSize } }, // Add metadata for the page and page size
           ],
           entries: [
@@ -59,15 +59,24 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
             { $limit: pageSize },
             {
               $lookup: {
-                from: "ministries",
-                localField: "ministry",
-                foreignField: "_id",
-                as: "ministry",
+                from: 'ministries',
+                localField: 'ministry',
+                foreignField: '_id',
+                as: 'ministry',
+                pipeline: [
+                  {
+                    $project: {
+                      _id: 1,
+                      name: 1,
+                      ministryImageUrl: 1,
+                    },
+                  },
+                ],
               },
             },
             {
               $unwind: {
-                path: "$ministry",
+                path: '$ministry',
                 preserveNullAndEmptyArrays: true,
               },
             },
@@ -77,13 +86,15 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
     ]);
 
     return res.status(200).json({
-      data: data.entries,
-      page,
-      pages: Math.ceil(data.metadata[0]?.totalCount / pageSize) || 0,
-      totalCount: data.metadata[0]?.totalCount || 0,
-      // pages: Math.ceil(count / pageSize),
-      prevPage: page - 1,
-      nextPage: page + 1,
+      payload: data.entries,
+      metadata: {
+        page,
+        pages: Math.ceil(data.metadata[0]?.totalCount / pageSize) || 0,
+        totalCount: data.metadata[0]?.totalCount || 0,
+        // pages: Math.ceil(count / pageSize),
+        prevPage: page - 1,
+        nextPage: page + 1,
+      },
     });
   } catch (e) {
     console.log(e);

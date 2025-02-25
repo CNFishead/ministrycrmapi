@@ -41,8 +41,6 @@ export default asyncHandler(
       const event = await Event.create({
         ...eventData,
         user: req.user._id,
-        startDate: new Date(eventData.dates[0]),
-        endDate: new Date(eventData.dates[1]),
       });
 
       // Send the event data in the response
