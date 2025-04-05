@@ -27,8 +27,8 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
       ...(Object.keys(keywordQuery[0]).length > 0 ? keywordQuery : []),
       ...(Object.keys(filterIncludeOptions[0]).length > 0 ? filterIncludeOptions : []), // Only include if there are filters
     ];
- 
-    const [data] = await CheckInSummary.aggregate([
+
+    const data = await CheckInSummary.aggregate([
       {
         $match: {
           $and: [
@@ -38,34 +38,18 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
         },
       },
       {
-        $group: {
-          _id: {
-            date: { $dateToString: { format: '%Y-%m-%d', date: '$date' } }, // Group by date (YYYY-MM-DD format)
-          },
-          count: { $sum: '$totalCheckIns' }, // Sum all check-ins for the date
-          checkIns: { $mergeObjects: '$totalCheckIns' }, // Merge all check-ins into a single object
-        },
-      },
-      {
-        $sort: { '_id.date': 1 }, // Sort by date ASC
-      },
-      {
         $project: {
           _id: 0,
-          date: '$_id.date',
-          count: 1,
+          date: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+          checkIns: 1,
         },
       },
       {
-        $facet: {
-          metadata: [
-            { $count: 'totalCount' }, // Count the total number of documents
-          ],
-          entries: [],
-        },
+        $sort: { date: 1 },
       },
     ]);
-    return res.status(200).json({ success: true, payload: [...data.entries] });
+
+    return res.status(200).json({ success: true, payload: data});
   } catch (error: any) {
     console.log(error);
     res.status(500).json({ message: `Something Went Wrong: ${error.message}` });

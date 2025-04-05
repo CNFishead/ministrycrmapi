@@ -15,31 +15,66 @@ import Member from '../../models/Member';
 export default asyncHandler(
   async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     try {
-      const members = await Member.find({
-        user: new mongoose.Types.ObjectId(`674502107f2646bb882d5674`),
-      });
+      console.log('🔄 Rebuilding all CheckInSummaries from CheckInRecords...');
 
-      if (!members) {
-        return res.status(404).json({ message: 'Members not found', success: false });
+      // Aggregate all records grouped by date, ministry, and locationType
+      const checkIns = await CheckInRecord.aggregate([
+        {
+          $group: {
+            _id: {
+              date: { $dateToString: { format: '%Y-%m-%d', date: '$checkInDate' } },
+              ministryId: '$ministry',
+              locationType: '$location',
+            },
+            count: { $sum: 1 },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              date: '$_id.date',
+              ministryId: '$_id.ministryId',
+            },
+            checkIns: {
+              $push: {
+                locationType: '$_id.locationType',
+                count: '$count',
+              },
+            },
+          },
+        },
+      ]);
+
+      if (checkIns.length === 0) {
+        console.log('✅ No records found to rebuild summaries.');
+        return;
       }
-      const ministryMain = await Ministry.findOne({
-        _id: new mongoose.Types.ObjectId(`674502127f2646bb882d5679`),
-      });
 
-      if (!ministryMain) {
-        return res.status(404).json({ message: 'Ministry not found', success: false });
-      }
+      // Remove all existing summaries (optional, or you can overwrite with upsert)
+      await CheckInSummary.deleteMany({});
+      console.log('🗑 Existing summaries cleared.');
 
-      for (const member of members) {
-        // check if the member already exists in the ministry.members
-        // if not, add them
-        if (!ministryMain.members.includes(member._id as any)) {
-          console.log(`member ${member._id} not found in ministry ${ministryMain._id}`);
-          ministryMain.members.push(member._id as any);
+      for (const record of checkIns) {
+        const checkInMap: Record<string, number> = {};
+
+        for (const checkIn of record.checkIns) {
+          checkInMap[`checkIns.${checkIn.locationType}`] = checkIn.count;
         }
-        await ministryMain.save();
+
+        await CheckInSummary.updateOne(
+          {
+            date: new Date(record._id.date),
+            ministry: record._id.ministryId,
+          },
+          {
+            $set: {}, // clear old values if necessary
+            $inc: checkInMap,
+          },
+          { upsert: true }
+        );
       }
 
+      console.log(`✅ Successfully rebuilt ${checkIns.length} CheckInSummary records.`);
       return res.status(200).json({ success: true });
     } catch (err) {
       console.log(err);

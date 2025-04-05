@@ -15,10 +15,20 @@ export interface CheckInSummary extends Document {
  * @lastModifiedBy - Austin Howard
  * @lastModified 2025-02-11 14:22:09
  */
-const CheckInSummarySchema: Schema = new Schema({
-  date: { type: Date, required: true },
-  ministry: { type: Schema.Types.ObjectId, required: true, ref: 'Ministry' },
-  totalCheckIns: { type: Map, of: Number, default: {} } // Dynamic key-value store
-});
+const CheckInSummarySchema: Schema = new Schema(
+  {
+    date: { type: Date, required: true },
+    ministry: { type: Schema.Types.ObjectId, required: true, ref: 'Ministry' },
+    checkIns: {
+      type: Map,
+      of: Number,
+      default: {},
+    }, // Dynamic key-value store
+  },
+  {
+    // Use the default timestamps option to automatically add createdAt and updatedAt fields
+    timestamps: true,
+  }
+);
 
 export default mongoose.model<CheckInSummary>('CheckSummary', CheckInSummarySchema);

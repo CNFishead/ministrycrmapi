@@ -1,5 +1,5 @@
-import mongoose from "mongoose";
-import MemberType from "../types/MemberType";
+import mongoose from 'mongoose';
+import MemberType from '../types/MemberType';
 
 /**
  * @description - This is the member schema
@@ -39,43 +39,48 @@ const MemberSchema = new mongoose.Schema(
   {
     firstName: {
       type: String,
-      required: [true, "Please add a name"],
+      required: [true, 'Please add a name'],
       // trim
       trim: true,
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
     },
     lastName: {
       type: String,
       trim: true,
     },
+    maritalStatus: {
+      type: String,
+      enum: ['single', 'married', 'divorced', 'widowed'],
+      default: 'single',
+    },
     family: {
       // reference to what family this member belongs to
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Family",
+      ref: 'Family',
     },
     ministry: [
       {
         // reference to what ministry this member belongs to
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Ministry",
+        ref: 'Ministry',
       },
     ],
     mainMinistry: {
       // reference to what ministry this member belongs to
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Ministry",
+      ref: 'Ministry',
     },
     profileImageUrl: {
       type: String,
-      default: "/images/no-photo.png",
+      default: '/images/no-photo.png',
     },
     sex: {
       type: String,
-      enum: ["male", "female"],
-      default: "male",
+      enum: ['male', 'female'],
+      default: 'male',
     },
     email: {
       type: String,
@@ -116,7 +121,7 @@ const MemberSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      default: "member",
+      default: 'member',
     },
     fullName: {
       type: String,
@@ -145,16 +150,16 @@ const MemberSchema = new mongoose.Schema(
 );
 
 // creates the fullName field.
-MemberSchema.pre("save", async function () {
+MemberSchema.pre('save', async function () {
   // last name could be undefined, so we check for that
-  this.fullName = this.firstName + " " + this.lastName;
+  this.fullName = this.firstName + ' ' + this.lastName;
 });
 
 // enforces that the email string be lower case throughout, as if it isnt, a user with
 // test@email.com and a user Test@email.com do not match, and you can end up with duplicate emails..
-MemberSchema.pre("save", async function (next) {
+MemberSchema.pre('save', async function (next) {
   this.email = this.email?.toLowerCase();
   next();
 });
 
-export default mongoose.model<MemberType>("Member", MemberSchema);
+export default mongoose.model<MemberType>('Member', MemberSchema);

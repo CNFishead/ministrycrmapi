@@ -9,26 +9,29 @@ export default async function aggregateCheckIns() {
     // Find all check-ins that haven't been processed yet
     const checkIns = await CheckInRecord.aggregate([
       {
-        $match: { processed: false }, // Only new check-ins
+        $match: { processed: false },
       },
       {
         $group: {
           _id: {
-            date: { $dateToString: { format: '%Y-%m-%d', date: '$checkInDate' } }, // Group by date
+            date: { $dateToString: { format: '%Y-%m-%d', date: '$checkInDate' } },
             ministryId: '$ministry',
-            locationType: '$location', // Group by location type
+            locationType: '$location', // ✅ Correct field name
           },
-          totalCheckIns: { $sum: 1 },
-          records: { $push: '$_id' }, // Collect record IDs
+          checkInCount: { $sum: 1 }, // ✅ This now matches below
+          records: { $push: '$_id' },
         },
       },
       {
         $group: {
-          _id: { date: '$_id.date', ministryId: '$_id.ministryId' },
+          _id: {
+            date: '$_id.date',
+            ministryId: '$_id.ministryId',
+          },
           checkIns: {
             $push: {
               locationType: '$_id.locationType',
-              count: '$checkInCount',
+              count: '$checkInCount', // ✅ Fixed
             },
           },
           records: { $push: '$records' },
@@ -40,12 +43,13 @@ export default async function aggregateCheckIns() {
       console.log('✅ No new check-ins to process.');
       return;
     }
-     // Upsert into CheckInSummary
-     for (const record of checkIns) {
+    // Upsert into CheckInSummary
+    for (const record of checkIns) {
       // Convert checkIns array into a key-value object dynamically
-      const checkInMap = {} as Record<string, number>;
+      const checkInMap: Record<string, number> = {};
       for (const checkIn of record.checkIns) {
-        checkInMap[checkIn.locationType] = checkIn.count;
+        const locationType = checkIn.locationType || 'unknown'; // Fallback to 'unknown' if locationType is not defined
+        checkInMap[`checkIns.${checkIn.locationType}`] = checkIn.count;
       }
 
       await CheckInSummary.updateOne(
