@@ -91,6 +91,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
         },
       },
     ]);
+    console.log(data);
     return res
       .status(200)
       .json({ message: 'Member found', success: true, payload: [...data.entries] });

@@ -20,7 +20,6 @@ import sendMailSparkPost from '../../utils/sendMailSparkPost';
 export default asyncHandler(async (req: Request, res: Response) => {
   try {
     // get the user from the database using the user's email that was sent in the request body
-    console.log(req.body);
     const user = await UserSchema.findOne({ email: req.body.email });
     // if the user is not found, return an error
     if (!user) {
@@ -48,7 +47,6 @@ export default asyncHandler(async (req: Request, res: Response) => {
     if (process.env.NODE_ENV === 'development') {
       hostName = 'localhost:3003';
     }
-
     await sendMailSparkPost(
       { template_id: 'verification-email' },
       [

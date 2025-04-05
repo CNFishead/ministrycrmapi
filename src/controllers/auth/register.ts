@@ -4,9 +4,9 @@ import User from '../../models/User';
 import { Response, Request } from 'express';
 import crypto from 'crypto';
 import Member from '../../models/Member';
-import createCustomer from '../paymentControllers/createCustomer'; 
+import createCustomer from '../paymentControllers/createCustomer';
 import PaymentProcessorFactory from '../../factory/PaymentProcessorFactory';
-import moment from 'moment'; 
+import moment from 'moment';
 import sendMailSparkPost from '../../utils/sendMailSparkPost';
 import generateToken from '../../utils/generateToken';
 /**
@@ -33,9 +33,7 @@ export default asyncHandler(async (req: Request, res: Response) => {
     if (!email || !password || !firstName || !lastName) {
       return res.status(400).json({ message: 'Please enter all fields' });
     }
-    const processor = new PaymentProcessorFactory().chooseProcessor(
-      'pyreprocessing'
-    );
+    const processor = new PaymentProcessorFactory().chooseProcessor('pyreprocessing');
     // check if the email is already in use
     // @ts-ignore
     const userExists = await User.findOne({ email }); // returns a user object if the email is in use
@@ -110,12 +108,12 @@ export default asyncHandler(async (req: Request, res: Response) => {
 
     // set the next payment date for the user, from two weeks from the current date
     newUser.nextPayment = moment().add(2, 'weeks').toDate();
-    // save the user object
-    await newUser.save();
 
     // now we need to update the users emailVerificationToken and expire
     newUser.emailVerificationToken = await crypto.randomBytes(20).toString('hex');
     newUser.emailVerificationExpires = new Date(Date.now() + 3600000); // 1 hour
+    // save the user object
+    await newUser.save();
     // send emails to the user and the admin
     // send email verification
     // set the hostname for the email validation link, if we are in development send it to localhost
@@ -181,9 +179,7 @@ export default asyncHandler(async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     console.log(error);
-    return res
-      .status(500)
-      .json({ message: `Something Went Wrong: ${error.message}` });
+    return res.status(500).json({ message: `Something Went Wrong: ${error.message}` });
   }
 });
 
