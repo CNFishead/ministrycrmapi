@@ -14,6 +14,10 @@ import nodemon from 'nodemon';
 import colors from 'colors';
 import socket from './utils/socket';
 import { cronJobs } from './cronjobs/cronjobs';
+//clustering
+import cluster from 'cluster';
+import os from 'os';
+
 // Routes
 //const middlewares
 const mongoSanitize = require('express-mongo-sanitize');
@@ -23,9 +27,6 @@ const hpp = require('hpp');
 const { Server } = require('socket.io');
 
 dotenv.config();
-
-// Connect to database
-db();
 
 const app = express();
 
@@ -81,12 +82,44 @@ app.get('/', (req: Request, res: Response) => {
   res.send('API is running... Shepherds of Christ Ministries');
 });
 
-const server = app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`.yellow.bold);
-  cronJobs();
-});
+const numCPUs = os.cpus().length;
+const maxWorkers = Math.min(numCPUs, Number(process.env.CORE_CAP));
 
-socket.init(server);
-const io = socket.getIO();
+if (cluster.isPrimary) {
+  console.log(`Primary process ${process.pid} is running`.green);
 
-socketConnection(io);
+  //fork workers
+  for (let i = 0; i < maxWorkers; i++) {
+    cluster.fork(); 
+  }
+
+  cluster.on('exit', (worker, code, signal) => {
+    console.log(`Worker ${worker.process.pid} died. Restarting...`.red);
+    cluster.fork();
+  });
+} else {
+  // Connect to database
+  db();
+  app.get('/test', (req, res) => {
+    const start = Date.now();
+    while (Date.now() - start < 500); // 500ms CPU block
+    res.json({ message: `Handled by ${process.pid}` });
+  });
+
+  app.listen(3000, () => {
+    console.log(`Worker ${process.pid} started`);
+  });
+  //worker process runs the server
+  const server = app.listen(PORT, () => {
+    console.log(
+      `Server running; Worker ${process.pid} running in ${process.env.NODE_ENV} mode on port ${PORT}`
+        .yellow.bold
+    );
+    cronJobs();
+  });
+
+  socket.init(server);
+  const io = socket.getIO();
+
+  socketConnection(io);
+}
