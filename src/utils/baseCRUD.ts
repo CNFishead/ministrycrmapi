@@ -41,7 +41,10 @@ export class CRUDHandler<T extends mongoose.Document> {
       },
       {
         $facet: {
-          metadata: [{ $count: 'totalCount' }, { $addFields: { page: options.page, limit: options.limit } }],
+          metadata: [
+            { $count: 'totalCount' },
+            { $addFields: { page: options.page, limit: options.limit } },
+          ],
           entries: [{ $skip: (options.page - 1) * options.limit }, { $limit: options.limit }],
         },
       },
@@ -54,7 +57,10 @@ export class CRUDHandler<T extends mongoose.Document> {
 
   async update(id: string, data: any): Promise<T | null> {
     await this.beforeUpdate(id, data);
-    const updated = await this.Schema.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+    const updated = await this.Schema.findByIdAndUpdate(id, data, {
+      new: true,
+      runValidators: true,
+    });
     await this.afterUpdate(updated);
     return updated;
   }
@@ -88,7 +94,8 @@ export abstract class CRUDService {
   /**
    * Override this in child class to mark methods requiring authentication.
    */
-  protected requiresAuth: Partial<Record<keyof CRUDService, boolean>> & Record<string, boolean> = {};
+  protected requiresAuth: Partial<Record<keyof CRUDService, boolean>> & Record<string, boolean> =
+    {};
   /**
    * Override this in child class to define query keys for filtering in fetchall methods.
    */
@@ -121,7 +128,7 @@ export abstract class CRUDService {
       return error(err, req, res);
     }
   });
-  public getResource = async (req: Request, res: Response): Promise<Response> => {
+  public getResource = asyncHandler(async (req: Request, res: Response): Promise<Response> => {
     try {
       this.ensureAuthenticated(req as AuthenticatedRequest, 'getResource');
       await this.beforeFetch(req.params.id);
@@ -140,8 +147,9 @@ export abstract class CRUDService {
       console.log(err);
       return error(err, req, res);
     }
-  };
-  public getResources = async (req: Request, res: Response): Promise<Response> => {
+  });
+
+  public getResources = asyncHandler(async (req: Request, res: Response): Promise<Response> => {
     try {
       this.ensureAuthenticated(req as AuthenticatedRequest, 'getResources');
       const pageSize = Number(req.query?.pageLimit) || 10;
@@ -155,7 +163,11 @@ export abstract class CRUDService {
       // Construct the `$or` array conditionally
       const orConditions = [
         ...(Object.keys(keywordQuery[0]).length > 0 ? keywordQuery : []),
-        ...(Array.isArray(filterIncludeOptions) && filterIncludeOptions.length > 0 && Object.keys(filterIncludeOptions[0]).length > 0 ? filterIncludeOptions : []), // Only include if there are filters
+        ...(Array.isArray(filterIncludeOptions) &&
+        filterIncludeOptions.length > 0 &&
+        Object.keys(filterIncludeOptions[0]).length > 0
+          ? filterIncludeOptions
+          : []), // Only include if there are filters
       ];
 
       await this.beforeFetchAll({
@@ -188,8 +200,9 @@ export abstract class CRUDService {
       console.log(err);
       return error(err, req, res);
     }
-  };
-  public updateResource = async (req: Request, res: Response): Promise<Response> => {
+  });
+
+  public updateResource = asyncHandler(async (req: Request, res: Response): Promise<Response> => {
     try {
       this.ensureAuthenticated(req as AuthenticatedRequest, 'updateResource');
       await this.beforeUpdate(req.params.id, req.body);
@@ -200,8 +213,8 @@ export abstract class CRUDService {
       console.log(err);
       return error(err, req, res);
     }
-  };
-  public removeResource = async (req: Request, res: Response): Promise<Response> => {
+  });
+  public removeResource = asyncHandler(async (req: Request, res: Response): Promise<Response> => {
     try {
       this.ensureAuthenticated(req as AuthenticatedRequest, 'removeResource');
       await this.beforeDelete(req.params.id);
@@ -212,7 +225,7 @@ export abstract class CRUDService {
       console.log(err);
       return error(err, req, res);
     }
-  };
+  });
 
   // helper methods for CRUD operations before/after hooks
   protected async beforeCreate(data: any): Promise<void> {}

@@ -1,5 +1,5 @@
 import express from 'express';
-import authRoutes from './authRoutes';
+import authRoutes from '../../modules/auth/routes/index';
 import userRoutes from './userRoutes';
 import uploadRoutes from './uploadRoutes';
 import ministryRoutes from './ministryRoutes';

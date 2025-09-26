@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import { RegisterHandler } from '../handlers/RegisterHandler';
+import { RegisterHandler } from '../handlers/Register.handler';
 import { eventBus } from '../../../lib/eventBus';
-import { AuthenticationHandler } from '../handlers/AuthenticationHandler';
+import { AuthenticationHandler } from '../handlers/Authentication.handler';
 import { AuthenticatedRequest } from '../../../types/AuthenticatedRequest';
-import { PasswordRecoveryHandler } from '../handlers/PasswordRecoveryHandler';
+import { PasswordRecoveryHandler } from '../handlers/PasswordRecovery.handler';
 import error from '../../../middleware/error';
 import asyncHandler from '../../../middleware/asyncHandler';
 

@@ -1,15 +1,18 @@
 import express from 'express';
 import AuthService from '../services/Auth.service';
 import { AuthMiddleware } from '../../../middleware/AuthMiddleware'; 
+import featureRoutes from './featureRoutes';
+import planRoutes from './planRoutes';
+import legalRoutes from './legalRoutes';
+import billingRoutes from './billingRoutes';
 const router = express.Router();
 
 const authService = new AuthService();
 
-// router.use('/feature', featureRoutes);
-// router.use('/plan', planRoutes);
-// router.use('/claim', claimRoutes);
-// router.use('/legal', legalRoutes);
-// router.use('/billing', billingRoutes);
+router.use('/feature', featureRoutes);
+router.use('/plan', planRoutes);
+router.use('/legal', legalRoutes);
+router.use('/billing', billingRoutes);
 
 router.route('/:email/email').get(authService.checkEmail);
 router.post('/register', authService.register);
