@@ -2,12 +2,13 @@ import { UserType } from '../models/User';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { RoleRegistry } from '../utils/RoleRegistry'; 
+import { RoleRegistry } from '../utils/RoleRegistry';
 import BillingAccount, { BillingAccountType } from '../models/BillingAccount';
 import slugify from 'slugify';
 import Notification from '../../notification/model/Notification';
 import { ErrorUtil } from '../../../middleware/ErrorUtil';
 import { ModelMap } from '../../../utils/ModelMap';
+import Token from '../models/TokenSchema';
 
 type RegisterInput = {
   email: string;
@@ -116,16 +117,23 @@ export class RegisterHandler {
       trim: true, // removes leading and trailing whitespace
     });
 
-    this.user = await this.modelMap['user'].create({
-      ...this.data,
-      emailVerificationToken: await crypto.randomBytes(20).toString('hex'),
-      emailVerificationExpires: new Date(Date.now() + 3600000), // 1 hour
+    this.user = await this.modelMap['user'].create(this.data);
+
+    // create a token for email verification
+    const { token } = await Token.issue({
+      userId: this.user._id,
+      type: 'EMAIL_VERIFY',
+      email: this.user.email,
+      ttlMs: 3600000, // 1 hour
+      uniquePerSubject: true,
+      meta: { purpose: 'Verify email address' },
     });
+
+    this.user.emailVerificationToken = token; // so we can pass this to the email service.
 
     // unique tail to the access key to avoid collisions
     const uniqueTail = this.user._id.toString().slice(-6);
     this.user.accessKey = `${sluggedName}-${uniqueTail}`;
-    // Note: We'll save the user once at the end of createProfiles() to avoid multiple saves
   }
 
   /**
@@ -133,24 +141,8 @@ export class RegisterHandler {
    * @throws {Error} If any profile creation fails, it will clean up the user and any created profiles.
    */
   private async createProfiles() {
-    // console.log(this.data.roles);
     for (const role of this.data.roles) {
-      // console.log(`Creating profile for role: ${role}`);
-      // const creator = ProfileCreationFactory.getProfileCreator(role);
-      // if (!creator) continue;
-      // console.log(`Using creator for role: ${role}`);
-      const profileData = this.data.profileData?.[role] ?? {};
-      // console.log(`Profile data for role ${role}:`, profileData);
       try {
-        // const profile = await creator.createProfile(this.user._id, profileData);
-        // this.profileRefs[role] = profile.profileId;
-
-        const roleMeta = RoleRegistry[role];
-        if (roleMeta?.isBillable && !this.customerCreated) {
-          // console.log(`Creating billing account for role: ${role}`);
-          // await this.createBillingAccount(profile.profileId, role);
-          this.customerCreated = true;
-        }
       } catch (err) {
         console.log(`Failed to create profile for role ${role}:`, err);
         await this.cleanupOnFailure();
@@ -171,18 +163,21 @@ export class RegisterHandler {
    */
   private async createBillingAccount(profileId: string, role: string) {
     console.log(`Creating billing account..`);
-    try {   
-      this.billingAccount = await BillingAccount.create({ 
+    try {
+      this.billingAccount = await BillingAccount.create({
         profileId,
         profileType: role,
-        email: this.data.email,  
+        email: this.data.email,
         status: 'active',
         vaulted: false,
         payor: this.user._id,
       });
       console.log(`Billing account created for profile ${profileId} with role ${role}`);
     } catch (error: any) {
-      console.error(`Failed to create billing account for profile ${profileId} with role ${role}:`, error);
+      console.error(
+        `Failed to create billing account for profile ${profileId} with role ${role}:`,
+        error
+      );
       throw new Error(`Failed to create billing account: ${error.message}`);
     }
   }
@@ -214,7 +209,9 @@ export class RegisterHandler {
    * @description Sets verification token and expiration for email verification.
    * @param email - The email to set the verification token for.
    */
-  public async setEmailVerificationToken(email: string): Promise<{ token: string; user: UserType }> {
+  public async setEmailVerificationToken(
+    email: string
+  ): Promise<{ token: string; user: UserType }> {
     const user = await this.modelMap['user'].findOne({ email });
     if (!user) throw new Error('User not found');
     const token = await crypto.randomBytes(20).toString('hex');
