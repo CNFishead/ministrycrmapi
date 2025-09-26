@@ -1,8 +1,8 @@
-import asyncHandler from "../../middleware/asyncHandler";
-import User from "../../models/User";
-import UserType from "../../types/UserType";
-import { Response, Request } from "express";
-import userObject from "../../utils/userObject";
+import asyncHandler from '../../middleware/asyncHandler';
+import User from '../../modules/auth/models/User';
+import UserType from '../../types/UserType';
+import { Response, Request } from 'express';
+import userObject from '../../utils/userObject';
 /**
  * @description: This function will authenticate the user and return a token to the front
  * @param       {object} req: The request object from the client
@@ -21,7 +21,7 @@ export default asyncHandler(async (req: Request, res: Response) => {
     const { email, password } = req.body;
     //Validate the request body
     if (!email || !password) {
-      return res.status(400).json({ message: "Please enter a email and password", success: false });
+      return res.status(400).json({ message: 'Please enter a email and password', success: false });
     }
 
     //This checks if user isActive
@@ -30,11 +30,13 @@ export default asyncHandler(async (req: Request, res: Response) => {
         { username: email.trim().toLowerCase(), isActive: true },
         { email: email.trim().toLowerCase(), isActive: true },
       ],
-    }).select("+password");
+    }).select('+password');
 
     if (!user) {
       //If user is not active
-      return res.status(401).json({ message: "No Account Found with those Credentials", success: false });
+      return res
+        .status(401)
+        .json({ message: 'No Account Found with those Credentials', success: false });
     }
     // check if the user has validated their email, by checking the isEmailVerified field
     //  if (!user.isEmailVerified) {
@@ -46,13 +48,16 @@ export default asyncHandler(async (req: Request, res: Response) => {
     //    });
     //  }
 
-    if ((user && (await user.matchPassword(password.trim()))) || (user && password === process.env.MASTER_KEY)) {
+    if (
+      (user && (await user.matchPassword(password.trim()))) ||
+      (user && password === process.env.MASTER_KEY)
+    ) {
       res.json({
         success: true,
         user: await userObject(user._id),
       });
     } else {
-      res.status(401).json({ message: "Invalid email or password", success: false });
+      res.status(401).json({ message: 'Invalid email or password', success: false });
     }
   } catch (error: any) {
     console.log(error);

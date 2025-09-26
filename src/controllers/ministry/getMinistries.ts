@@ -7,7 +7,7 @@ import parseFilterOptions from '../../utils/parseFilterOptions';
 import parseQueryKeywords from '../../utils/parseQueryKeywords';
 import parseSortString from '../../utils/parseSortString';
 import Ministry from '../../models/Ministry';
-import User from '../../models/User';
+import User from '../../modules/auth/models/User';
 
 /**
  * @description - This function will return all members for a ministry, and all sub ministry members.

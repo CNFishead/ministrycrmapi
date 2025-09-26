@@ -5,7 +5,7 @@ import UserType from '../types/UserType';
 import CommonCaptureTypes from '../types/CommonCaptureTypes';
 import CommonVoidTypes from '../types/CommonVoidTypes';
 import CommonRefundTypes from '../types/CommonRefundTypes';
-import User from '../models/User';
+import User from '../modules/auth/models/User';
 
 /**
  * @description PyreProcessing class, this class extends the PaymentProcessor class
@@ -92,15 +92,12 @@ class PyreProcessing extends PaymentProcessor {
   async deleteVault(vaultId: string) {
     try {
       // send a request to pyre to create a customer in the api
-      const { data } = await axios.post(
-        `${process.env.PYRE_API_URL}/vault/${vaultId}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': process.env.PYRE_API_KEY,
-          },
-        }
-      );
+      const { data } = await axios.post(`${process.env.PYRE_API_URL}/vault/${vaultId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.PYRE_API_KEY,
+        },
+      });
 
       return {
         success: true,

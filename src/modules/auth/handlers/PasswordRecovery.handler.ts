@@ -2,9 +2,7 @@ import User, { UserType } from '../models/User';
 import crypto from 'crypto';
 
 export class PasswordRecoveryHandler {
-  async requestReset(
-    email: string
-  ): Promise<{ success: boolean; email?: string; token?: string }> {
+  async requestReset(email: string): Promise<{ success: boolean; email?: string; token?: string }> {
     // Validate user exists
     const user = await User.findOne({ email });
     if (!user) {

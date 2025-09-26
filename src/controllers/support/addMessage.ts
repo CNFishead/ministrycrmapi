@@ -5,8 +5,8 @@ import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
 import authenticateUser from '../../utils/authenticateUser';
 import Support from '../../models/Support';
 import SupportMessage from '../../models/SupportMessage';
-import User from '../../models/User';
-import Notification from '../../models/Notification';
+import User from '../../modules/auth/models/User';
+// import Notification from '../../models/Notification';
 import socket from '../../utils/socket';
 import sendMailSparkPost from '../../utils/sendMailSparkPost';
 
@@ -56,38 +56,38 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
     ticket.status = isUser ? 'Open' : 'Pending';
 
     // notify the user if the agent is sending the message
-    if (!isUser) {
-      await Notification.insertNotification(
-        ticket.requester as any,
-        user ? user._id : null,
-        `New message on ticket #${ticket.subject}`,
-        `${user ? user.fullName : req?.body?.fullName} has sent a new message on ticket #${
-          ticket.subject
-        }`,
-        'support',
-        ticket._id
-      );
-    }
+    // if (!isUser) {
+    //   await Notification.insertNotification(
+    //     ticket.requester as any,
+    //     user ? user._id : null,
+    //     `New message on ticket #${ticket.subject}`,
+    //     `${user ? user.fullName : req?.body?.fullName} has sent a new message on ticket #${
+    //       ticket.subject
+    //     }`,
+    //     'support',
+    //     ticket._id
+    //   );
+    // }
 
     // add a notification to the tickets assigned agent if there is one
     if (ticket.assignee) {
       // find the agent
       const agent = await User.findById(ticket.assignee);
       // if the agent is found, add the notification
-      if (agent) {
-        await Notification.insertNotification(
-          agent._id as any,
-          user ? user._id : null,
-          `New message on ticket #${ticket.subject}`,
-          `${user ? user.fullName : req?.body?.fullName} has sent a new message on ticket #${
-            ticket.subject
-          }`,
-          'support',
-          ticket._id
-        );
-      }
+      // if (agent) {
+      //   await Notification.insertNotification(
+      //     agent._id as any,
+      //     user ? user._id : null,
+      //     `New message on ticket #${ticket.subject}`,
+      //     `${user ? user.fullName : req?.body?.fullName} has sent a new message on ticket #${
+      //       ticket.subject
+      //     }`,
+      //     'support',
+      //     ticket._id
+      //   );
+      // }
     }
-
+ 
     // save the ticket
     await ticket.save();
 

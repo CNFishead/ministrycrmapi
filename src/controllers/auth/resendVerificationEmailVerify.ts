@@ -1,6 +1,6 @@
 import asyncHandler from '../../middleware/asyncHandler';
 import errorHandler from '../../middleware/error';
-import UserSchema from '../../models/User';
+import UserSchema from '../../modules/auth/models/User';
 import crypto from 'crypto';
 import sendEmail from '../../utils/sendEmail';
 import { Request, Response } from 'express';

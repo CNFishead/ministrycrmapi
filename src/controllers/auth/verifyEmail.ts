@@ -2,7 +2,7 @@ import asyncHandler from '../../middleware/asyncHandler';
 import errorHandler from '../../middleware/error';
 import userObject from '../../utils/userObject';
 import { Request, Response } from 'express';
-import UserSchema from '../../models/User';
+import UserSchema from '../../modules/auth/models/User';
 import UserType from '../../types/UserType';
 import { encryptData } from '../../utils/encryption';
 

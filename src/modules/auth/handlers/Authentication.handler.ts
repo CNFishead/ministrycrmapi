@@ -28,7 +28,8 @@ export class AuthenticationHandler {
       throw new Error('Invalid credentials.');
     }
 
-    const isMatch = (await user.matchPassword(password.trim())) || password === process.env.MASTER_KEY;
+    const isMatch =
+      (await user.matchPassword(password.trim())) || password === process.env.MASTER_KEY;
     if (!isMatch) {
       throw new Error('Invalid credentials.');
     }

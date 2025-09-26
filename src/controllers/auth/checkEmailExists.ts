@@ -1,7 +1,7 @@
-import { Request, Response } from "express";
-import asyncHandler from "../../middleware/asyncHandler";
-import User from "../../models/User";
-import error from "../../middleware/error";
+import { Request, Response } from 'express';
+import asyncHandler from '../../middleware/asyncHandler';
+import User from '../../modules/auth/models/User';
+import error from '../../middleware/error';
 
 /**
  * @description Checks if email is available
@@ -23,7 +23,7 @@ export default asyncHandler(async (req: Request, res: Response) => {
     // email could be undefined, so we check for that
     if (!email) {
       return res.status(400).json({
-        message: "Please provide a username",
+        message: 'Please provide a username',
       });
     }
     // the email has to be URL encoded, so we decode it
@@ -33,13 +33,13 @@ export default asyncHandler(async (req: Request, res: Response) => {
     // if the username is taken, return an error
     if (user) {
       return res.status(200).json({
-        message: "Username is not available",
+        message: 'Username is not available',
         exists: true,
       });
     }
     // if the username is available, return a success message
     return res.status(200).json({
-      message: "Username is available",
+      message: 'Username is available',
       exists: false,
     });
   } catch (e: any) {

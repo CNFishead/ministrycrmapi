@@ -2,19 +2,19 @@ import asyncHandler from '../../middleware/asyncHandler';
 import errorHandler from '../../middleware/error';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
-import User from '../../models/User';
+import User from '../../modules/auth/models/User';
 import userObject from '../../utils/userObject';
 /**
  * @description: This function updates the user object with the values sent from the client
  * @param       {object} req: The request object from the client
  * @param       {object} res: The response object from the server
  * @returns     {object} user: The user object that was updated
- * 
+ *
  * @author - Austin Howard
  * @since - 1.0
  * @version 1.0
  * @lastModified - 2023-05-08T17:50:46.000-05:00
- * 
+ *
  */
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response, next: any) => {
   try {
@@ -24,12 +24,12 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     // we need to set the runValidators option to true so that the validator functions are run on the updated user object
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
-      {...req.body},
+      { ...req.body },
       {
         new: true,
-        runValidators: true
+        runValidators: true,
       }
-    )
+    );
     // if the updatedUser object is null, return a 404 error
     if (!updatedUser) {
       return res.status(404).json({ message: 'User not found' });
@@ -40,4 +40,4 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     console.log(error);
     errorHandler(error, req, res, next);
   }
-})
+});

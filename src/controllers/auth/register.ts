@@ -1,6 +1,5 @@
 import asyncHandler from '../../middleware/asyncHandler';
 import Ministry from '../../models/Ministry';
-import User from '../../models/User';
 import { Response, Request } from 'express';
 import crypto from 'crypto';
 import Member from '../../models/Member';
@@ -11,6 +10,7 @@ import sendMailSparkPost from '../../utils/sendMailSparkPost';
 import generateToken from '../../utils/generateToken';
 import PartnerSchema from '../../models/PartnerSchema';
 import mongoose from 'mongoose';
+import User from '../../modules/auth/models/User';
 /**
  * @description: this function registers a new account to the database.
  *               It will check if the email is already in use, if it is, it will throw an error
@@ -42,7 +42,9 @@ export default asyncHandler(async (req: Request, res: Response) => {
     if (userExists) {
       return res.status(400).json({ message: 'Email already in use' });
     }
-    const partnerid = String(req.query.partnerid ? req.query.partnerid : process.env.SHEPHERD_PARTNER_KEY);
+    const partnerid = String(
+      req.query.partnerid ? req.query.partnerid : process.env.SHEPHERD_PARTNER_KEY
+    );
     const [partner] = await PartnerSchema.aggregate([
       {
         $match: {
@@ -96,39 +98,39 @@ export default asyncHandler(async (req: Request, res: Response) => {
     }
 
     // we need to send a request to pyre to create a customer
-    const customerResponse = await createCustomer(newUser);
+    // const customerResponse = await createCustomer(newUser);
 
     // if the customerResponse is not successful we need to delete the user, throw an error and return
-    if (!customerResponse.success) {
-      await removeCustomerData([newUser.id, User], [member.id, Member]);
-      return res.status(400).json({ message: customerResponse.message });
-    }
+    // if (!customerResponse.success) {
+    //   await removeCustomerData([newUser.id, User], [member.id, Member]);
+    //   return res.status(400).json({ message: customerResponse.message });
+    // }
 
     // update the user with the customerId from pyre
-    newUser.customerId = customerResponse?.payload?._id;
+    // newUser.customerId = customerResponse?.payload?._id;
 
     // create a vault for the user
-    const vaultResponse = await processor.createVault(newUser, {
-      first_name: newUser.firstName,
-      last_name: newUser.lastName,
-      email: newUser.email,
-      paymentMethod: req.body.billingDetails.paymentMethod,
-      address1: req.body.billingDetails.address1,
-      address2: req.body.billingDetails.address2,
-      city: req.body.billingDetails.city,
-      state: req.body.billingDetails.state,
-      zip: req.body.billingDetails.zip,
-      country: req.body.billingDetails.country,
-      phone: member.phoneNumber,
-      creditCardDetails: req.body.billingDetails.creditCardDetails,
-      achDetails: req.body.billingDetails.achDetails,
-    });
+    // const vaultResponse = await processor.createVault(newUser, {
+    //   first_name: newUser.firstName,
+    //   last_name: newUser.lastName,
+    //   email: newUser.email,
+    //   paymentMethod: req.body.billingDetails.paymentMethod,
+    //   address1: req.body.billingDetails.address1,
+    //   address2: req.body.billingDetails.address2,
+    //   city: req.body.billingDetails.city,
+    //   state: req.body.billingDetails.state,
+    //   zip: req.body.billingDetails.zip,
+    //   country: req.body.billingDetails.country,
+    //   phone: member.phoneNumber,
+    //   creditCardDetails: req.body.billingDetails.creditCardDetails,
+    //   achDetails: req.body.billingDetails.achDetails,
+    // });
 
     // if the vaultResponse is not successful we need to delete the user, throw an error and return
-    if (!vaultResponse.success) {
-      await removeCustomerData([newUser.id, User], [member.id, Member]);
-      return res.status(400).json({ message: vaultResponse.message });
-    }
+    // if (!vaultResponse.success) {
+    //   await removeCustomerData([newUser.id, User], [member.id, Member]);
+    //   return res.status(400).json({ message: vaultResponse.message });
+    // }
 
     // set the next payment date for the user, from two weeks from the current date
     ministry.nextPayment = moment().add(2, 'weeks').toDate();

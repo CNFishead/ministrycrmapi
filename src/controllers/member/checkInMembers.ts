@@ -8,7 +8,7 @@ import MemberType from '../../types/MemberType';
 import moment from 'moment';
 import Ministry, { MinistryType } from '../../models/Ministry';
 import mongoose from 'mongoose';
-import User from '../../models/User';
+import User from '../../modules/auth/models/User';
 import CheckInRecord from '../../models/CheckInRecord';
 /**
  * @description: This function will check in members for a ministry.
@@ -29,7 +29,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     if (!visitors || visitors.length === 0) {
       return res.status(400).json({ message: 'Visitors array is required', success: false });
     }
-    
+
     const ministry = await Ministry.findById(req.params.id);
     if (!ministry) {
       return res.status(400).json({ message: 'Ministry not found', success: false });
@@ -82,12 +82,12 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
           dateLastVisited: timestamp,
           isChild,
         });
-        
+
         await CheckInRecord.create({
           member: newMember._id,
           ministry: ministry._id,
           checkInDate: timestamp,
-          location: req.body.checkInLocation
+          location: req.body.checkInLocation,
         });
 
         if (!newMember) {
@@ -96,7 +96,9 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
         await Ministry.findByIdAndUpdate(ministry._id, { $push: { members: newMember._id } });
         // update the main ministry with the new member as well, if it is not the same as the ministry we are checking in to.
         if (ministry._id !== mainMinistry?._id) {
-          await Ministry.findByIdAndUpdate(mainMinistry?._id, { $push: { members: newMember._id } });
+          await Ministry.findByIdAndUpdate(mainMinistry?._id, {
+            $push: { members: newMember._id },
+          });
         }
         // add the member to the family object.
         await Family.findByIdAndUpdate(newFamily._id, { $push: { members: newMember._id } });
@@ -137,7 +139,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
           member: member._id,
           ministry: ministry._id,
           checkInDate: timestamp,
-          location: req.body.checkInLocation
+          location: req.body.checkInLocation,
         });
 
         // save the member object.
@@ -167,7 +169,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
           member: newMember._id,
           ministry: ministry._id,
           checkInDate: timestamp,
-          location: req.body.checkInLocation
+          location: req.body.checkInLocation,
         });
         await Ministry.findByIdAndUpdate(ministry._id, { $push: { members: newMember._id } });
         await Family.findByIdAndUpdate(family._id, { $push: { members: newMember._id } });

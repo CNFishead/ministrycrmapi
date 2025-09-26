@@ -1,5 +1,5 @@
 import asyncHandler from '../../middleware/asyncHandler';
-import User from '../../models/User';
+import User from '../../modules/auth/models/User';
 import UserType from '../../types/UserType';
 import { Response, Request } from 'express';
 import crypto from 'crypto';
@@ -20,7 +20,7 @@ import { hostname } from 'os';
  */
 export default asyncHandler(async (req: Request, res: Response) => {
   try {
-    // find the user by email 
+    // find the user by email
     const users = await User.find({ email: req.body.email });
     const user = users[0];
     // if the user is not found, return an error

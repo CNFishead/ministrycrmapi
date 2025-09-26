@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../../../types/AuthenticatedRequest';
 import asyncHandler from '../../../middleware/asyncHandler';
-import User from '../../../models/User';
+import User from '../../../modules/auth/models/User';
 import error from '../../../middleware/error';
 
 /**

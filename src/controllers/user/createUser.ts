@@ -2,7 +2,7 @@ import { Response } from 'express';
 import asyncHandler from '../../middleware/asyncHandler';
 import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
 import error from '../../middleware/error';
-import User from '../../models/User';
+import User from '../../modules/auth/models/User';
 
 /**
  * @param       {object} req: The request object from the client
@@ -24,7 +24,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
       return res.status(400).json({ message: 'an account for this email already exists' });
     }
 
-    // otherwise create the user 
+    // otherwise create the user
     return res.status(201).json({ success: true, data: {} });
   } catch (err: any) {
     console.log(error);

@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import asyncHandler from './asyncHandler';
 import User from '../modules/auth/models/User';
-import { AuthenticatedRequest } from '../types/AuthenticatedRequest'; 
+import { AuthenticatedRequest } from '../types/AuthenticatedRequest';
 import { ErrorUtil } from './ErrorUtil';
 import { ModelMap } from '../utils/ModelMap';
 
@@ -14,28 +14,30 @@ export class AuthMiddleware {
    * @param next - Next function to call the next middleware
    * @returns {void}
    */
-  static protect = asyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    const authHeader = req.headers.authorization;
+  static protect = asyncHandler(
+    async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+      const authHeader = req.headers.authorization;
 
-    if (!authHeader) {
-      throw new ErrorUtil('No authorization header provided.', 401);
-    }
+      if (!authHeader) {
+        throw new ErrorUtil('No authorization header provided.', 401);
+      }
 
-    if (authHeader.startsWith('Bearer ')) {
-      await AuthMiddleware.verifyJwt(req, res, next);
-    } else if (authHeader.startsWith('ApiKey ')) {
-      await AuthMiddleware.verifyApiKey(req, res, next);
-    } else {
-      return res.status(401).json({ message: 'Unsupported authentication method.' });
+      if (authHeader.startsWith('Bearer ')) {
+        await AuthMiddleware.verifyJwt(req, res, next);
+      } else if (authHeader.startsWith('ApiKey ')) {
+        await AuthMiddleware.verifyApiKey(req, res, next);
+      } else {
+        return res.status(401).json({ message: 'Unsupported authentication method.' });
+      }
     }
-  });
+  );
 
   private static async verifyJwt(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const service = req.headers['x-service-name'];
       const token = req.headers.authorization!.split(' ')[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
-      req.user = await User.findById(decoded.userId).select('-password'); 
+      req.user = await User.findById(decoded.userId).select('-password');
       if (!req.user) {
         return res.status(401).json({ message: 'User not found.' });
       }
@@ -91,7 +93,9 @@ export class AuthMiddleware {
     return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
       const userPermissions = req.user?.permissions || [];
 
-      const hasPermission = requiredPermissions.some((permission) => userPermissions.includes(permission));
+      const hasPermission = requiredPermissions.some((permission) =>
+        userPermissions.includes(permission)
+      );
 
       if (!hasPermission) {
         return res.status(403).json({ message: 'Forbidden: insufficient permissions' });

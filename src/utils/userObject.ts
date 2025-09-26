@@ -1,5 +1,5 @@
 import mongoose, { ObjectId } from 'mongoose';
-import User from '../models/User';
+import User from '../modules/auth/models/User';
 import generateToken from './generateToken';
 
 /**
@@ -23,7 +23,7 @@ export default async (id: any) => {
         $lookup: {
           from: 'members',
           localField: '_id',
-          foreignField: 'user',
+          foreignField: 'user', 
           as: 'member',
           pipeline: [
             {

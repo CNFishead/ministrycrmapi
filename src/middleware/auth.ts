@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import User from '../models/User';
+import User from '../modules/auth/models/User';
 import mongoose from 'mongoose';
 import moment from 'moment';
 import ApiKeySchema from '../models/ApiKeySchema';

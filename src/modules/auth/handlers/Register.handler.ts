@@ -22,7 +22,7 @@ type RegisterInput = {
     [key: string]: any;
   };
   ministryInfo: {
-    name: string;
+    name: string; 
     description?: string;
     donationLink?: string;
     address?: string;

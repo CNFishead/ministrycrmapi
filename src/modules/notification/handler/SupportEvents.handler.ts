@@ -12,7 +12,9 @@ export default class SupportEventHandler {
         event.ticket.requester as any,
         event.user ? event.user._id : null,
         `New message on ticket #${event.ticket.subject}`,
-        `${event.user ? event.user.fullName : event.body?.fullName} has sent a new message on ticket #${event.ticket.subject}`,
+        `${
+          event.user ? event.user.fullName : event.body?.fullName
+        } has sent a new message on ticket #${event.ticket.subject}`,
         'support',
         event.ticket._id
       );
@@ -28,7 +30,9 @@ export default class SupportEventHandler {
           agent._id as any,
           event.user ? event.user._id : null,
           `New message on ticket #${event.ticket.subject}`,
-          `${event.user ? event.user.fullName : event.body?.fullName} has sent a new message on ticket #${event.ticket.subject}`,
+          `${
+            event.user ? event.user.fullName : event.body?.fullName
+          } has sent a new message on ticket #${event.ticket.subject}`,
           'support',
           event.ticket._id
         );

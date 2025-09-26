@@ -4,7 +4,7 @@ import error from '../../middleware/error';
 import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
 import SupportGroup from '../../models/SupportGroups';
 import Support from '../../models/Support';
-import User from '../../models/User';
+import User from '../../modules/auth/models/User';
 import { ObjectId } from 'mongoose';
 
 /**

@@ -1,5 +1,5 @@
 import asyncHandler from '../../middleware/asyncHandler';
-import User from '../../models/User';
+import User from '../../modules/auth/models/User';
 import { Response, Request } from 'express';
 import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
 import error from '../../middleware/error';
