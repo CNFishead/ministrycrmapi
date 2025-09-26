@@ -2,7 +2,7 @@
 import mongoose, { Schema, Types, Document, Model } from 'mongoose';
 import crypto from 'crypto';
 
-type TokenType = 'PASSWORD_RESET' | 'EMAIL_VERIFY' ;
+type TokenType = 'PASSWORD_RESET' | 'EMAIL_VERIFY';
 
 interface TokenAttrs {
   type: TokenType;
@@ -41,7 +41,12 @@ const hashToken = (raw: string) => crypto.createHash('sha256').update(raw, 'utf8
 
 const TokenSchema = new Schema<TokenDoc, TokenModel>(
   {
-    type: { type: String, required: true, enum: ['PASSWORD_RESET', 'EMAIL_VERIFY', 'TEAM_INVITE'], index: true },
+    type: {
+      type: String,
+      required: true,
+      enum: ['PASSWORD_RESET', 'EMAIL_VERIFY', 'TEAM_INVITE'],
+      index: true,
+    },
     tokenHash: { type: String, required: true, index: true },
     expiresAt: { type: Date, required: true },
     consumedAt: { type: Date, default: null, index: true },
@@ -58,10 +63,16 @@ const TokenSchema = new Schema<TokenDoc, TokenModel>(
 TokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 /* One active token per (user,type) while unconsumed */
-TokenSchema.index({ type: 1, user: 1, consumedAt: 1 }, { unique: true, partialFilterExpression: { consumedAt: null, user: { $type: 'objectId' } } });
+TokenSchema.index(
+  { type: 1, user: 1, consumedAt: 1 },
+  { unique: true, partialFilterExpression: { consumedAt: null, user: { $type: 'objectId' } } }
+);
 
 /* One active token per (email,type) while unconsumed — for invite flows */
-TokenSchema.index({ type: 1, email: 1, consumedAt: 1 }, { unique: true, partialFilterExpression: { consumedAt: null, email: { $type: 'string' } } });
+TokenSchema.index(
+  { type: 1, email: 1, consumedAt: 1 },
+  { unique: true, partialFilterExpression: { consumedAt: null, email: { $type: 'string' } } }
+);
 
 /* ——— statics ——— */
 TokenSchema.statics.issue = async function ({
@@ -81,12 +92,28 @@ TokenSchema.statics.issue = async function ({
   meta?: Record<string, unknown> | null;
   uniquePerSubject?: boolean;
 }): Promise<{ token: string; doc: TokenDoc }> {
-  // optional: enforce single active token per subject+type
+  const now = new Date();
+
+  // Check for existing valid tokens
   if (uniquePerSubject) {
-    const filter: any = { type, consumedAt: null, expiresAt: { $gt: new Date() } };
+    const filter: any = { type, consumedAt: null, expiresAt: { $gt: now } };
     if (userId) filter.user = userId;
     if (email) filter.email = email;
-    await this.updateMany(filter, { $set: { consumedAt: new Date() } });
+
+    const existingToken = await this.findOne(filter);
+
+    if (existingToken) {
+      // Return the existing valid token instead of creating a new one
+      // We need to reconstruct the raw token - but we can't since it's hashed
+      // So instead, consume the old token and create a new one
+      await this.updateOne({ _id: existingToken._id }, { $set: { consumedAt: now } });
+    }
+
+    // Also consume any other tokens (expired or not) to prevent conflicts
+    const allFilter: any = { type, consumedAt: null };
+    if (userId) allFilter.user = userId;
+    if (email) allFilter.email = email;
+    await this.updateMany(allFilter, { $set: { consumedAt: now } });
   }
 
   const raw = genToken(32);
@@ -103,7 +130,13 @@ TokenSchema.statics.issue = async function ({
   return { token: raw, doc };
 };
 
-TokenSchema.statics.validateRaw = async function ({ rawToken, type }: { rawToken: string; type: TokenType }): Promise<TokenDoc | null> {
+TokenSchema.statics.validateRaw = async function ({
+  rawToken,
+  type,
+}: {
+  rawToken: string;
+  type: TokenType;
+}): Promise<TokenDoc | null> {
   const now = new Date();
   return this.findOne({
     type,

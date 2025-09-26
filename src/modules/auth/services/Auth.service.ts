@@ -95,26 +95,28 @@ export default class AuthService {
     }
   });
 
-  public resendVerificationEmail = asyncHandler(async (req: Request, res: Response): Promise<Response> => {
-    try {
-      const { email } = req.body;
-      if (!email) {
-        return res.status(400).json({ error: 'Email is required' });
+  public resendVerificationEmail = asyncHandler(
+    async (req: Request, res: Response): Promise<Response> => {
+      try {
+        const { email } = req.body;
+        if (!email) {
+          return res.status(400).json({ error: 'Email is required' });
+        }
+        const result = await this.registerHandler.setEmailVerificationToken(email);
+
+        // Emit event for resending verification email
+        eventBus.publish('email.verify', {
+          user: result.user,
+        });
+
+        return res
+          .status(200)
+          .json({ success: true, message: 'Verification email sent', token: result.token });
+      } catch (err: any) {
+        return error(err, req, res);
       }
-      const result = await this.registerHandler.setEmailVerificationToken(email);
-
-      // Emit event for resending verification email
-      eventBus.publish('email.verify', {
-        user: result.user,
-      });
-
-      return res
-        .status(200)
-        .json({ success: true, message: 'Verification email sent', token: result.token });
-    } catch (err: any) {
-      return error(err, req, res);
     }
-  });
+  );
 
   public recaptcha = asyncHandler(async (req: Request, res: Response): Promise<Response> => {
     try {
@@ -127,16 +129,17 @@ export default class AuthService {
 
   public checkEmail = asyncHandler(async (req: Request, res: Response): Promise<Response> => {
     try {
-      const { email } = req.body;
+      const { email } = req.params;
       if (!email) {
         return res.status(400).json({ error: 'Email is required' });
       }
 
-      // const exists = await this.authHandler.checkEmailExists(email);
+      const exists = await this.registerHandler.isEmailRegistered(email);
       return res.status(200).json({
-        // exists
+        exists,
       });
     } catch (err: any) {
+      console.error(err);
       return error(err, req, res);
     }
   });

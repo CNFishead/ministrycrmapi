@@ -22,7 +22,7 @@ type RegisterInput = {
     [key: string]: any;
   };
   ministryInfo: {
-    name: string; 
+    name: string;
     description?: string;
     donationLink?: string;
     address?: string;
@@ -65,17 +65,16 @@ export class RegisterHandler {
   public async execute(data: RegisterInput): Promise<{
     user: any;
     token: string;
-    profileRefs: Record<string, string | null>;
-    billing: { status: string; requiresVaultSetup: boolean };
+    profileRefs?: Record<string, string | null>; 
   }> {
     try {
       this.data = data;
-      await this.validatePartner();
+      // await this.validatePartner(); // Temporarily disabled since we have no partners
       await this.createUser();
       await this.createMember();
       await this.createMinistry();
       await this.createBillingAccount(this.ministry._id.toString(), 'ministry');
-      await this.createProfiles();
+      // await this.createProfiles();
 
       const token = jwt.sign(
         {
@@ -103,11 +102,7 @@ export class RegisterHandler {
       }
       const result = {
         token,
-        profileRefs: this.profileRefs,
-        billing: {
-          status: 'trialing',
-          requiresVaultSetup: this.customerCreated,
-        },
+        profileRefs: this.profileRefs, 
         user: this.user,
       };
 
@@ -119,6 +114,7 @@ export class RegisterHandler {
       console.log(`[RegistrationHandler] Registration failed:`, error);
       // Reset state after failed execution
       this.resetState();
+      await this.cleanupOnFailure();
       throw new Error(`Registration failed: ${error.message}`);
     }
   }
@@ -166,7 +162,7 @@ export class RegisterHandler {
       `[RegistrationHandler] attempting to create user with email: ${this.data.userInfo.email}`
     );
 
-    const existingUser = await this.modelMap['user'].findOne({ email: this.data.userInfo.email });
+    const existingUser = await this.modelMap['auth'].findOne({ email: this.data.userInfo.email });
     if (existingUser) {
       throw new Error('Email already registered');
     }
@@ -179,11 +175,10 @@ export class RegisterHandler {
       trim: true, // removes leading and trailing whitespace
     });
 
-    this.user = await this.modelMap['user'].create(this.data.userInfo);
+    this.user = await this.modelMap['auth'].create(this.data.userInfo);
 
     // create a token for email verification
     const { token } = await Token.issue({
-      userId: this.user._id,
       type: 'EMAIL_VERIFY',
       email: this.user.email,
       ttlMs: 3600000, // 1 hour
@@ -235,14 +230,12 @@ export class RegisterHandler {
    * @throws {Error} If any profile creation fails, it will clean up the user and any created profiles.
    */
   private async createProfiles() {
-    for (const role of this.data.roles) {
       try {
       } catch (err) {
-        console.log(`[RegistrationHandler] Failed to create profile for role ${role}:`, err);
+        console.log(`[RegistrationHandler] Failed to create profile:`, err);
         await this.cleanupOnFailure();
-        throw new Error(`Failed to create ${role} profile`);
+        throw new Error(`Failed to create profile`);
       }
-    }
 
     // Set both profileRefs and accessKey, then save only once
     this.user.profileRefs = this.profileRefs;
@@ -284,7 +277,7 @@ export class RegisterHandler {
    */
   private async cleanupOnFailure() {
     const cleanupPromises = [
-      this.user?._id && this.modelMap['user'].findByIdAndDelete(this.user._id),
+      this.user?._id && this.modelMap['auth'].findByIdAndDelete(this.user._id),
       this.member?._id && Member.findByIdAndDelete(this.member._id),
       this.ministry?._id && Ministry.findByIdAndDelete(this.ministry._id),
       this.billingAccount?._id && BillingAccount.findByIdAndDelete(this.billingAccount._id),
@@ -307,7 +300,7 @@ export class RegisterHandler {
    * @param email - The email to check for registration.
    */
   public async isEmailRegistered(email: string): Promise<boolean> {
-    const user = await this.modelMap['user'].findOne({ email }).lean();
+    const user = await this.modelMap['auth'].findOne({ email }).lean();
     return !!user;
   }
 
@@ -318,7 +311,7 @@ export class RegisterHandler {
   public async setEmailVerificationToken(
     email: string
   ): Promise<{ token: string; user: UserType }> {
-    const user = await this.modelMap['user'].findOne({ email });
+    const user = await this.modelMap['auth'].findOne({ email });
     if (!user) throw new Error('User not found');
 
     // Use the Token schema to issue a new email verification token
@@ -344,7 +337,7 @@ export class RegisterHandler {
     if (!tokenDoc) throw new ErrorUtil('Invalid or expired token', 400);
 
     // Get the user from the token document
-    const user = await this.modelMap['user'].findById(tokenDoc.user);
+    const user = await this.modelMap['auth'].findById(tokenDoc.user);
     if (!user) throw new ErrorUtil('User not found', 400);
 
     // Mark email as verified
