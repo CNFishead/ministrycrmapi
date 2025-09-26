@@ -1,5 +1,5 @@
 import { ErrorUtil } from '../../../middleware/ErrorUtil';
-import User from '../../auth/model/User';
+import User from '../../auth/models/User';
 import { EmailService } from '../email/EmailService';
 import Notification from '../model/Notification';
 

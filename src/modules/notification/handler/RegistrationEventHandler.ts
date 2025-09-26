@@ -1,5 +1,5 @@
 import { ErrorUtil } from '../../../middleware/ErrorUtil';
-import { UserType } from '../../auth/model/User';
+import { UserType } from '../../auth/models/User';
 import { EmailService } from '../email/EmailService';
 
 export default class RegistrationEventHandler {

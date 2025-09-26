@@ -17,7 +17,7 @@ export class EtherealProvider implements EmailProvider {
 
   async sendEmail({ to, subject, html, from }: EmailPayload): Promise<void> {
     const info = await this.transporter.sendMail({
-      from: from || 'no-reply@freeagentportal.dev',
+      from: from || 'no-reply@shepherdcms.dev',
       to,
       subject,
       html,
