@@ -2,6 +2,12 @@ import cron from 'node-cron';
 import aggregateCheckIns from './checkInSummaryJob';
 
 export const cronJobs = async () => {
+  // only init if not in development mode
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('[CronJobs] Skipping cron job initialization in development mode');
+    return;
+  }
+  console.info('[CronJobs] Initializing cron jobs...');
   cron.schedule(
     '0 0 * * *',
     async () => {

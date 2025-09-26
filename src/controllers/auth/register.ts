@@ -9,6 +9,8 @@ import PaymentProcessorFactory from '../../factory/PaymentProcessorFactory';
 import moment from 'moment';
 import sendMailSparkPost from '../../utils/sendMailSparkPost';
 import generateToken from '../../utils/generateToken';
+import PartnerSchema from '../../models/PartnerSchema';
+import mongoose from 'mongoose';
 /**
  * @description: this function registers a new account to the database.
  *               It will check if the email is already in use, if it is, it will throw an error
@@ -40,13 +42,32 @@ export default asyncHandler(async (req: Request, res: Response) => {
     if (userExists) {
       return res.status(400).json({ message: 'Email already in use' });
     }
-
-    // TODO: add payment info to registration
-
+    const partnerid = String(req.query.partnerid ? req.query.partnerid : process.env.SHEPHERD_PARTNER_KEY);
+    const [partner] = await PartnerSchema.aggregate([
+      {
+        $match: {
+          // can be the id, or the businessName
+          $or: [
+            {
+              businessName: {
+                $regex: partnerid,
+                $options: 'i',
+              },
+            },
+            // if the partnerid is a valid mongoose object id, then we will match it to the _id
+            ...(mongoose.Types.ObjectId.isValid(partnerid)
+              ? [{ _id: mongoose.Types.ObjectId.createFromHexString(partnerid) }]
+              : []),
+          ],
+        },
+      },
+    ]);
+    if (!partner) {
+      return res.status(401).json({ message: `You're not Authorized to post to this form.` });
+    }
     // create a new user object
     const newUser = await User.create({
       ...req.body.userInfo,
-      features: req.body.features,
     });
 
     const member = await Member.create({
@@ -54,8 +75,25 @@ export default asyncHandler(async (req: Request, res: Response) => {
       lastName: newUser.lastName,
       email: newUser.email,
       user: newUser._id,
+      ...req.body.userInfo,
       ...req.body.ministryInfo,
     });
+
+    // on registration we need to create a ministry object for the user who created the account
+    // pass in the ministry object from the request body
+    const ministry = await Ministry.create({
+      leader: member._id,
+      ...req.body.ministryInfo,
+      isMainMinistry: true,
+      features: req.body.features,
+      admins: [newUser],
+    });
+
+    // if the ministry object is not created, we need to delete the user and member objects
+    if (!ministry) {
+      await removeCustomerData([newUser.id, User], [member.id, Member]);
+      return res.status(400).json({ message: 'Error Creating Ministry' });
+    }
 
     // we need to send a request to pyre to create a customer
     const customerResponse = await createCustomer(newUser);
@@ -81,7 +119,7 @@ export default asyncHandler(async (req: Request, res: Response) => {
       state: req.body.billingDetails.state,
       zip: req.body.billingDetails.zip,
       country: req.body.billingDetails.country,
-      phone: newUser.phoneNumber,
+      phone: member.phoneNumber,
       creditCardDetails: req.body.billingDetails.creditCardDetails,
       achDetails: req.body.billingDetails.achDetails,
     });
@@ -92,22 +130,8 @@ export default asyncHandler(async (req: Request, res: Response) => {
       return res.status(400).json({ message: vaultResponse.message });
     }
 
-    // on registration we need to create a ministry object for the user who created the account
-    // pass in the ministry object from the request body
-    const ministry = await Ministry.create({
-      leader: member._id,
-      ...req.body.ministryInfo,
-      isMainMinistry: true,
-    });
-
-    // if the ministry object is not created, we need to delete the user and member objects
-    if (!ministry) {
-      await removeCustomerData([newUser.id, User], [member.id, Member]);
-      return res.status(400).json({ message: 'Error Creating Ministry' });
-    }
-
     // set the next payment date for the user, from two weeks from the current date
-    newUser.nextPayment = moment().add(2, 'weeks').toDate();
+    ministry.nextPayment = moment().add(2, 'weeks').toDate();
 
     // now we need to update the users emailVerificationToken and expire
     newUser.emailVerificationToken = await crypto.randomBytes(20).toString('hex');

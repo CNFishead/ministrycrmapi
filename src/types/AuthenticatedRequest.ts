@@ -1,5 +1,5 @@
 import { Request } from "express";
-import UserType from "./UserType";
+import { UserType } from "../modules/auth/models/User";
 
 /**
  * @description - This interface will be used to add the user object to the request object.

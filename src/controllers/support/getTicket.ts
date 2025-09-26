@@ -1,8 +1,6 @@
 import asyncHandler from '../../middleware/asyncHandler';
-import User from '../../models/User';
-import { Response, Request } from 'express';
-import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
-import Ministry from '../../models/Ministry';
+import { Response } from 'express';
+import { AuthenticatedRequest } from '../../types/AuthenticatedRequest'; 
 import mongoose from 'mongoose';
 import Support from '../../models/Support';
 import error from '../../middleware/error';

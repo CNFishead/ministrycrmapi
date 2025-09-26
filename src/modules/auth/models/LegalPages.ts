@@ -1,19 +1,17 @@
-import mongoose, { Schema } from 'mongoose'; 
-
-export type LegalType = {
+import mongoose, { Schema } from 'mongoose';
+export interface LegalType extends mongoose.Document {
   type: string;
   title: string;
   content: string;
   effective_date: Date;
   version: string;
-};
+}
 interface LegalAttributes extends LegalType {}
 
 const LegalSchema = new Schema<LegalAttributes>(
   {
     type: {
       type: String,
-      enum: ['terms', 'privacy', 'cookie'],
       required: true,
     },
     title: {
@@ -38,4 +36,4 @@ const LegalSchema = new Schema<LegalAttributes>(
   }
 );
 
-export default mongoose.model('Legal', LegalSchema);
+export default mongoose.model<LegalType>('Legal', LegalSchema);

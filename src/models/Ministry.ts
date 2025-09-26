@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'; 
+import mongoose from 'mongoose';
 export interface MinistryType {
   _id: string;
   user: string;
@@ -18,6 +18,9 @@ export interface MinistryType {
   announcements: string[];
   features: string[];
   payor: string;
+  isPaidAccount: boolean;
+  nextPayment: Date;
+  initialPayment: Date;
   ownerMinistry: string;
   isMainMinistry: boolean;
   createdAt: Date;
@@ -97,6 +100,22 @@ const MinistrySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
     },
+    initialPayment: {
+      type: Date,
+      // required: true,
+    },
+    nextPayment: {
+      type: Date,
+      // required: true,
+    },
+    isPaidAccount: {
+      type: Boolean,
+      default: true,
+    },
+    credits: {
+      type: Number,
+      default: 0,
+    },
     // ownerMinistry is the ministry that owns this ministry
     // this means that this ministry is a sub ministry of the ownerMinistry
     // the ownerMinistry can be the main ministry, or it can be a sub ministry
@@ -113,6 +132,8 @@ const MinistrySchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    admins: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    leaders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   },
   {
     timestamps: true,
