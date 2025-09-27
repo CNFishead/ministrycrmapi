@@ -1,6 +1,6 @@
 import express from 'express';
 import authRoutes from '../../modules/auth/routes/index';
-import userRoutes from './userRoutes';
+import userRoutes from '../../modules/user/route/index';
 import uploadRoutes from './uploadRoutes';
 import ministryRoutes from './ministryRoutes';
 import memberRoutes from './memberRoutes';
@@ -17,7 +17,7 @@ import legalRoutes from './legalRoutes';
 const router = express.Router();
 
 // Import all of our routes
-router.use('/auth', authRoutes); 
+router.use('/auth', authRoutes);
 router.use('/family', familyRoutes);
 router.use('/user', userRoutes);
 router.use('/upload', uploadRoutes);
@@ -25,7 +25,7 @@ router.use('/ministry', ministryRoutes);
 router.use('/member', memberRoutes);
 router.use('/notification', notificationRoutes);
 router.use('/event', eventRoutes);
-router.use('/util', utilRoutes);  
-router.use('/support', supportRoutes); 
+router.use('/util', utilRoutes);
+router.use('/support', supportRoutes);
 
 export default router;

@@ -35,8 +35,9 @@ export default class AuthService {
   public login = asyncHandler(async (req: Request, res: Response): Promise<Response> => {
     try {
       const result = await this.authHandler.login(req);
-      return res.status(200).json(result);
+      return res.status(200).json({success: true, payload: result});
     } catch (err: any) {
+      console.error(err);
       return error(err, req, res);
     }
   });

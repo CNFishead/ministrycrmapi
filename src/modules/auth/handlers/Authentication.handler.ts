@@ -1,14 +1,14 @@
 import { Request } from 'express';
-import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import { AuthenticatedRequest } from '../../../types/AuthenticatedRequest';
 import axios from 'axios';
-import BillingAccount from '../models/BillingAccount';
 import { ErrorUtil } from '../../../middleware/ErrorUtil';
 import SignInLog from '../models/SignInLog';
+import { ModelKey, ModelMap } from '../../../utils/ModelMap';
 
 export class AuthenticationHandler {
+  private modelMap: Record<ModelKey, any> = ModelMap;
   /**
    * @description Logs in a user by validating their credentials and generating a JWT token.
    * @throws {Error} If the email or password is missing, or if the credentials are invalid.
@@ -20,24 +20,23 @@ export class AuthenticationHandler {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      throw new Error('Email and password are required.');
+      throw new ErrorUtil('Email and password are required.', 400);
     }
 
     const user = await User.findOne({ email: email.trim().toLowerCase() }).select('+password');
     if (!user) {
-      throw new Error('Invalid credentials.');
+      throw new ErrorUtil('Invalid credentials.', 401);
     }
 
     const isMatch =
       (await user.matchPassword(password.trim())) || password === process.env.MASTER_KEY;
     if (!isMatch) {
-      throw new Error('Invalid credentials.');
+      throw new ErrorUtil('Invalid credentials.', 401);
     }
 
     const token = jwt.sign(
       {
         userId: user._id,
-        roles: user.role,
         profileRefs: user.profileRefs,
       },
       process.env.JWT_SECRET!,
@@ -79,10 +78,16 @@ export class AuthenticationHandler {
       throw new ErrorUtil('User not authenticated.', 400);
     }
 
-    const foundUser = await User.findById(user._id).select('-password');
+    const foundUser = await this.modelMap['auth'].findById(user._id).select('-password');
     if (!foundUser) {
       throw new ErrorUtil('User not found.', 404);
     }
+
+    // find the user's ministry profile
+    const ministryProfile = await this.modelMap['ministry'].findOne({
+      user: foundUser._id,
+      isMainMinistry: true,
+    });
     return {
       payload: {
         _id: foundUser._id,
@@ -92,6 +97,7 @@ export class AuthenticationHandler {
         profileRefs: foundUser.profileRefs,
         profileImageUrl: foundUser.profileImageUrl,
         acceptedPolicies: foundUser.acceptedPolicies || {},
+        ministry: ministryProfile ? ministryProfile._id : null,
       },
     };
   }

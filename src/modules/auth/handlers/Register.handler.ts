@@ -217,6 +217,7 @@ export class RegisterHandler {
       ...this.data.ministryInfo,
       isMainMinistry: true,
       features: this.data.features,
+      user: this.user._id,
       admins: [this.user._id],
     });
 

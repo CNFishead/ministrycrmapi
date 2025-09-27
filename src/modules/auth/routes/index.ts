@@ -9,6 +9,8 @@ const router = express.Router();
 
 const authService = new AuthService();
 
+// authenticated routes
+router.get('/me', AuthMiddleware.protect, authService.getMe);
 router.use('/feature', featureRoutes);
 router.use('/plan', planRoutes);
 router.use('/legal', legalRoutes);
@@ -29,6 +31,4 @@ router.route('/health').get((req, res) => {
   });
 });
 
-// authenticated routes
-router.get('/me', AuthMiddleware.protect, authService.getMe);
 export default router;

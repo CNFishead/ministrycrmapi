@@ -76,7 +76,7 @@ const UserSchema = new mongoose.Schema(
       {
         type: String,
         default: ['user'],
-        enum: ['user'],
+        enum: ['user', 'admin', 'superadmin', 'agent'],
       },
     ],
     lastSignedIn: {
