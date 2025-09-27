@@ -3,7 +3,7 @@ import asyncHandler from '../../middleware/asyncHandler';
 import error from '../../middleware/error';
 import Event from '../../models/Event';
 import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
-import Ministry from '../../models/Ministry';
+import Ministry, { IMinistry as MinistryType } from "../../modules/ministry/models/Ministry.model"; 
 
 export default asyncHandler(
   async (req: AuthenticatedRequest, res: Response) => {

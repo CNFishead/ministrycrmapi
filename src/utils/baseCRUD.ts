@@ -202,6 +202,47 @@ export abstract class CRUDService {
     }
   });
 
+  public async getResourcesData(req: Request): Promise<{ entries: any[]; metadata: any[] }> {
+    const pageSize = Number(req.query?.pageLimit) || 10;
+    const page = Number(req.query?.pageNumber) || 1;
+
+    // Generate the keyword query
+    const keywordQuery = AdvFilters.query(this.queryKeys, req.query?.keyword as string);
+
+    // Generate the filter options for inclusion if provided
+    const filterIncludeOptions = AdvFilters.filter(req.query?.includeOptions as string);
+
+    // Construct the `$or` array conditionally
+    const orConditions = [
+      ...(Object.keys(keywordQuery[0]).length > 0 ? keywordQuery : []),
+      ...(Array.isArray(filterIncludeOptions) &&
+      filterIncludeOptions.length > 0 &&
+      Object.keys(filterIncludeOptions[0]).length > 0
+        ? filterIncludeOptions
+        : []),
+    ];
+
+    await this.beforeFetchAll({
+      filters: AdvFilters.filter(req.query?.filterOptions as string),
+      sort: AdvFilters.sort((req.query?.sortOptions as string) || '-createdAt'),
+      query: orConditions,
+      page,
+      limit: pageSize,
+    });
+
+    const [result] = await this.handler.fetchAll({
+      filters: AdvFilters.filter(req.query?.filterOptions as string),
+      sort: AdvFilters.sort((req.query?.sortOptions as string) || '-createdAt'),
+      query: orConditions,
+      page,
+      limit: pageSize,
+    });
+
+    await this.afterFetchAll(result);
+
+    return result;
+  }
+
   public updateResource = asyncHandler(async (req: Request, res: Response): Promise<Response> => {
     try {
       this.ensureAuthenticated(req as AuthenticatedRequest, 'updateResource');

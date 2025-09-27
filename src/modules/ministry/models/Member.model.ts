@@ -1,40 +1,33 @@
-import mongoose from 'mongoose';
-import MemberType from '../types/MemberType';
+import mongoose, { ObjectId } from 'mongoose'; 
+ 
+export interface IMember extends mongoose.Document {
+  _id: ObjectId | string;
+  user: ObjectId;
+  firstName: string;
+  lastName: string;
+  ministry: ObjectId[]; // user can be in multiple ministries
+  mainMinistry: ObjectId; // user can only belong to one main ministry, i.e. the church.
+  profileImageUrl: string;
+  sex: string;
+  email: string;
+  phoneNumber: string;
+  role: string;
+  location: {
+    address: string;
+    city: string;
+    state: string;
+    zip: string;
+    country: string;
+    address2: string;
+  };
+  fullName: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  birthday: Date;
+  dateLastVisited: Date;
+}
 
-/**
- * @description - This is the member schema
- * @param {String} firstName - The users first name
- * @param {String} lastName - The users last name
- * @param {String} profileImageUrl - The users profile image url
- * @param {String} sex - The users sex male/female
- * @param {String} email - The users email
- * @param {String} password - The users password
- * @param {String} username - The users username
- * @param {String} phoneNumber - The users phone number
- * @param {String} role - The users role
- * @param {String} handler - The users handler (used for pretty urls)
- * @param {String} address - The users address
- * @param {String} city - The users city
- * @param {String} state - The users state
- * @param {String} zip - The users zip
- * @param {String} country - The users country
- * @param {String} address2 - The users address2
- * @param {String} fullName - The users full name (first and last name)
- * @param {Boolean} isActive - If the user is active, if false the user will not be able to login
- * @param {Array} features - An array of features that the user has access to
- * @param {Date} initialPayment - The date the user made their initial payment
- * @param {Date} nextPayment - The date the user will make their next payment
- * @param {Date} createdAt - The date the user was created
- * @param {Date} updatedAt - The date the user was last updated
- * @param {Date} resetPasswordToken - The token used to reset the users password
- * @param {Date} resetPasswordExpire - The date the reset password token expires
- * @param {Number} credits - Credits towards the users account, used for subscriptions, etc
- *
- * @method getSignedJwtToken - This method returns a signed jwt token
- * @method getResetPasswordToken - This method returns a reset password token
- * @method matchPassword - This function matches a users password
- *
- */
 const MemberSchema = new mongoose.Schema(
   {
     firstName: {
@@ -141,8 +134,6 @@ const MemberSchema = new mongoose.Schema(
       type: Date,
     },
     tags: [{ type: String }],
-    resetPasswordToken: String,
-    resetPasswordExpire: Date,
   },
   {
     timestamps: true,
@@ -162,4 +153,4 @@ MemberSchema.pre('save', async function (next) {
   next();
 });
 
-export default mongoose.model<MemberType>('Member', MemberSchema);
+export default mongoose.model<IMember>('Member', MemberSchema);

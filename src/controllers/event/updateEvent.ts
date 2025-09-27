@@ -3,7 +3,7 @@ import asyncHandler from "../../middleware/asyncHandler";
 import error from "../../middleware/error";
 import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
 import Event from "../../models/Event";
-import Ministry from "../../models/Ministry";
+import Ministry, { IMinistry as MinistryType } from "../../modules/ministry/models/Ministry.model"; 
 
 /**
  * @description updates an object in the database

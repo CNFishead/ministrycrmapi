@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
-export interface MinistryType {
+
+export interface IMinistry extends mongoose.Document {
   _id: string;
   user: string;
   name: string;
@@ -76,25 +77,6 @@ const MinistrySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Member',
     },
-    events: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Event',
-      },
-    ],
-    announcements: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Announcement',
-      },
-    ],
-
-    features: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Feature',
-      },
-    ],
     // party responsible for subscription payments
     payor: {
       type: mongoose.Schema.Types.ObjectId,
@@ -140,4 +122,4 @@ const MinistrySchema = new mongoose.Schema(
   }
 );
 
-export default mongoose.model<MinistryType>('Ministry', MinistrySchema);
+export default mongoose.model<IMinistry>('Ministry', MinistrySchema);

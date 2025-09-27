@@ -1,15 +1,12 @@
 import { UserType } from '../models/User';
 import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
-import { RoleRegistry } from '../utils/RoleRegistry';
 import BillingAccount, { BillingAccountType } from '../models/BillingAccount';
 import slugify from 'slugify';
 import Notification from '../../notification/model/Notification';
 import { ErrorUtil } from '../../../middleware/ErrorUtil';
-import { ModelMap } from '../../../utils/ModelMap';
+import { ModelKey, ModelMap } from '../../../utils/ModelMap';
 import Token from '../models/TokenSchema';
-import Ministry from '../../../models/Ministry';
 import Member from '../../../models/Member';
 import PartnerSchema from '../../../models/PartnerSchema';
 
@@ -47,7 +44,7 @@ export class RegisterHandler {
   private customerCreated = false;
   private data!: RegisterInput;
   private billingAccount!: BillingAccountType;
-  private modelMap: Record<string, any>;
+  private modelMap: Record<ModelKey, any>;
 
   /**
    * @description Initializes the RegisterHandler with user data.
@@ -65,7 +62,7 @@ export class RegisterHandler {
   public async execute(data: RegisterInput): Promise<{
     user: any;
     token: string;
-    profileRefs?: Record<string, string | null>; 
+    profileRefs?: Record<string, string | null>;
   }> {
     try {
       this.data = data;
@@ -102,7 +99,7 @@ export class RegisterHandler {
       }
       const result = {
         token,
-        profileRefs: this.profileRefs, 
+        profileRefs: this.profileRefs,
         user: this.user,
       };
 
@@ -212,7 +209,7 @@ export class RegisterHandler {
    * @throws {Error} If the ministry creation fails.
    */
   private async createMinistry() {
-    this.ministry = await Ministry.create({
+    this.ministry = await this.modelMap['ministry'].create({
       leader: this.member._id,
       ...this.data.ministryInfo,
       isMainMinistry: true,
@@ -231,12 +228,12 @@ export class RegisterHandler {
    * @throws {Error} If any profile creation fails, it will clean up the user and any created profiles.
    */
   private async createProfiles() {
-      try {
-      } catch (err) {
-        console.log(`[RegistrationHandler] Failed to create profile:`, err);
-        await this.cleanupOnFailure();
-        throw new Error(`Failed to create profile`);
-      }
+    try {
+    } catch (err) {
+      console.log(`[RegistrationHandler] Failed to create profile:`, err);
+      await this.cleanupOnFailure();
+      throw new Error(`Failed to create profile`);
+    }
 
     // Set both profileRefs and accessKey, then save only once
     this.user.profileRefs = this.profileRefs;
@@ -279,9 +276,10 @@ export class RegisterHandler {
   private async cleanupOnFailure() {
     const cleanupPromises = [
       this.user?._id && this.modelMap['auth'].findByIdAndDelete(this.user._id),
-      this.member?._id && Member.findByIdAndDelete(this.member._id),
-      this.ministry?._id && Ministry.findByIdAndDelete(this.ministry._id),
-      this.billingAccount?._id && BillingAccount.findByIdAndDelete(this.billingAccount._id),
+      this.member?._id && this.modelMap['member'].findByIdAndDelete(this.member._id),
+      this.ministry?._id && this.modelMap['ministry'].findByIdAndDelete(this.ministry._id),
+      this.billingAccount?._id &&
+        this.modelMap['billing'].findByIdAndDelete(this.billingAccount._id),
     ].filter(Boolean); // Remove null/undefined promises
 
     // Add profile cleanup if they exist
