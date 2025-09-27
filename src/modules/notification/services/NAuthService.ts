@@ -13,5 +13,6 @@ export default class NAuthService {
     eventBus.subscribe('email.verified', this.registrationEventHandler.emailVerified);
     eventBus.subscribe('password.reset.requested', this.registrationEventHandler.passwordReset);
     eventBus.subscribe('password.reset.completed', this.registrationEventHandler.passwordResetCompleted);
+    eventBus.subscribe('user.registered', this.registrationEventHandler.userRegistered);
   }
 }

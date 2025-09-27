@@ -1,8 +1,10 @@
 import { ErrorUtil } from '../../../middleware/ErrorUtil';
+import { ModelKey, ModelMap } from '../../../utils/ModelMap';
 import { UserType } from '../../auth/models/User';
 import { EmailService } from '../email/EmailService';
 
 export default class RegistrationEventHandler {
+  private modelMap: Record<ModelKey, any> = ModelMap;
   async passwordResetCompleted(event: { user: UserType }) {
     const { user } = event;
     if (!user) {
@@ -35,13 +37,15 @@ export default class RegistrationEventHandler {
       const verificationUrl = `${process.env.FRONTEND_AUTH_URL}/verify-email?token=${user.emailVerificationToken}`;
       await EmailService.sendEmail({
         to: user.email,
-        subject: 'Welcome to FreeAgent Portal - Please Verify Your Email',
-        templateId: 'd-ef91fa3ddf554f33b6efdd205c181f7b',
+        subject: 'Welcome to ShepherdCMS - Please Verify Your Email',
+        templateId: 'verification-email',
         data: {
           firstName: user.firstName,
           currentYear: new Date().getFullYear(),
           verificationLink: verificationUrl,
-          subject: 'Welcome to FreeAgent Portal - Please Verify Your Email',
+          token: event.token,
+          host: process.env.FRONTEND_AUTH_URL,
+          subject: 'Welcome to ShepherdCMS - Please Verify Your Email',
         },
       });
     } catch (err: any) {
@@ -98,6 +102,42 @@ export default class RegistrationEventHandler {
     } catch (err: any) {
       console.error('Failed to send password reset email:', err);
       throw new ErrorUtil('Failed to send password reset email', 500);
+    }
+  }
+
+  async userRegistered(event: { user: UserType }): Promise<void> {
+    try {
+      const { user } = event;
+      if (!user) {
+        throw new ErrorUtil('User data is required for user registration event handling', 400);
+      }
+      console.log(`[Notification] New user registered with email: ${user.email}`);
+      // send welcome email to the user
+      await EmailService.sendEmail({
+        to: user.email,
+        subject: 'Welcome to ShepherdCMS',
+        templateId: 'registration-email',
+        data: {
+          name: user.fullName,
+          subject: 'Welcome to ShepherdCMS',
+        },
+      });
+
+      // Optionally, notify admin about new user registration
+      const admin = await this.modelMap['admin'].findOne({
+        role: { $in: ['admin', 'superadmin'] },
+      });
+      if (admin) {
+        await EmailService.sendEmail({
+          to: admin.email,
+          subject: 'New User Registration',
+          templateId: 'admin-new-user',
+          data: { name: admin.fullName, subject: 'New User Registration', user: user.fullName },
+        });
+      }
+    } catch (error) {
+      console.error('Failed to send user registration email:', error);
+      throw new ErrorUtil('Failed to send user registration email', 500);
     }
   }
 }

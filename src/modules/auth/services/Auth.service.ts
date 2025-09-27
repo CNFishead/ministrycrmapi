@@ -18,6 +18,9 @@ export default class AuthService {
     try {
       const result = await this.registerHandler.execute(req.body);
 
+      eventBus.publish('user.registered', {
+        user: result.user,
+      });
       eventBus.publish('email.verify', {
         user: result.user,
       });
