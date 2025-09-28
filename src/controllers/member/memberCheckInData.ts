@@ -4,7 +4,7 @@ import { Response } from 'express';
 import error from '../../middleware/error';
 import parseFilterOptions from '../../utils/parseFilterOptions';
 import parseQueryKeywords from '../../utils/parseQueryKeywords';
-import CheckInRecord from '../../models/CheckInRecord';
+import CheckInRecord from '../../modules/ministry/models/CheckInRecord';
 /**
  * @description - Returns information on a single user
  *

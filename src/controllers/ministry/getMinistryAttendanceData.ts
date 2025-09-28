@@ -1,7 +1,7 @@
 import asyncHandler from '../../middleware/asyncHandler';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
-import CheckInSummary from '../../models/CheckInSummary';
+import CheckInSummary from '../../modules/ministry/models/CheckInSummary';
 import parseQueryKeywords from '../../utils/parseQueryKeywords';
 import parseFilterOptions from '../../utils/parseFilterOptions';
 /**
@@ -49,7 +49,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
       },
     ]);
 
-    return res.status(200).json({ success: true, payload: data});
+    return res.status(200).json({ success: true, payload: data });
   } catch (error: any) {
     console.log(error);
     res.status(500).json({ message: `Something Went Wrong: ${error.message}` });

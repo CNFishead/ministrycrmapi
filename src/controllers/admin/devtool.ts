@@ -2,11 +2,9 @@ import { NextFunction, Response } from 'express';
 import asyncHandler from '../../middleware/asyncHandler';
 import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
 import error from '../../middleware/error';
-import Ministry from '../../models/Ministry';
-import CheckInRecord from '../../models/CheckInRecord';
+import CheckInRecord from '../../modules/ministry/models/CheckInRecord';
 import mongoose from 'mongoose';
-import CheckInSummary from '../../models/CheckInSummary';
-import Member from '../../models/Member';
+import CheckInSummary from '../../modules/ministry/models/CheckInSummary';
 
 /**
  * @description - allows developer to run a myriad of different functions on the platform via a http request

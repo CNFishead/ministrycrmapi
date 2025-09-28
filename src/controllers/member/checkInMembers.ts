@@ -9,7 +9,7 @@ import moment from 'moment';
 import Ministry, { MinistryType } from '../../models/Ministry';
 import mongoose from 'mongoose';
 import User from '../../modules/auth/models/User';
-import CheckInRecord from '../../models/CheckInRecord';
+import CheckInRecord from '../../modules/ministry/models/CheckInRecord';
 /**
  * @description: This function will check in members for a ministry.
  * @param       {object} req: The request object from the client

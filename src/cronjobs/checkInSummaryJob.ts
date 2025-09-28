@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import CheckInSummary from '../models/CheckInSummary';
-import CheckInRecord from '../models/CheckInRecord';
+import CheckInSummary from '../modules/ministry/models/CheckInSummary';
+import CheckInRecord from '../modules/ministry/models/CheckInRecord';
 
 export default async function aggregateCheckIns() {
   try {

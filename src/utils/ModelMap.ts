@@ -1,15 +1,32 @@
 import User from '../modules/auth/models/User';
 import AdminModel from '../modules/profiles/admin/model/AdminModel';
-import Member from '../models/Member';
 import BillingAccount from '../modules/auth/models/BillingAccount';
 import MinistryModel from '../modules/ministry/models/Ministry.model';
+import MemberModel from '../modules/ministry/models/Member.model';
+import PartnerSchema from '../models/PartnerSchema';
+import Token from '../modules/auth/models/TokenSchema';
+import CheckInRecord from '../modules/ministry/models/CheckInRecord';
+import CheckInSummary from '../modules/ministry/models/CheckInSummary';
 
-export type ModelKey = 'auth' | 'admin' | 'ministry' | 'member' | 'billing';
+export type ModelKey =
+  | 'auth'
+  | 'admin'
+  | 'ministry'
+  | 'member'
+  | 'billing'
+  | 'partner'
+  | 'token'
+  | 'check-rec'
+  | 'check-sum';
 
 export const ModelMap: Record<ModelKey, any> = {
   auth: User,
   admin: AdminModel,
   ministry: MinistryModel,
-  member: Member,
+  member: MemberModel,
   billing: BillingAccount,
+  partner: PartnerSchema,
+  token: Token,
+  'check-rec': CheckInRecord,
+  'check-sum': CheckInSummary,
 };

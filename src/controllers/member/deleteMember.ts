@@ -3,8 +3,8 @@ import error from '../../middleware/error';
 import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
 import Member from '../../models/Member';
 import { Response } from 'express';
-import Ministry, { IMinistry as MinistryType } from "../../modules/ministry/models/Ministry.model"; 
-import CheckInRecord from '../../models/CheckInRecord';
+import Ministry, { IMinistry as MinistryType } from '../../modules/ministry/models/Ministry.model';
+import CheckInRecord from '../../modules/ministry/models/CheckInRecord';
 
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   try {

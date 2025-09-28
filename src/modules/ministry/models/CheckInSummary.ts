@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-export interface CheckInSummary extends Document {
+export interface ICheckInSummary extends Document {
   _id: mongoose.Types.ObjectId;
   date: Date; // date of the summary check-in
   ministry: mongoose.Types.ObjectId; // ministry the check-in is for
@@ -31,4 +31,4 @@ const CheckInSummarySchema: Schema = new Schema(
   }
 );
 
-export default mongoose.model<CheckInSummary>('CheckSummary', CheckInSummarySchema);
+export default mongoose.model<ICheckInSummary>('CheckSummary', CheckInSummarySchema);

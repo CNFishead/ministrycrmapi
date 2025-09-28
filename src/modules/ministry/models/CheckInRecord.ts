@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-export interface CheckInRecord extends Document {
+export interface ICheckInRecord extends Document {
   _id: mongoose.Types.ObjectId;
   member: mongoose.Types.ObjectId;
   ministry: mongoose.Types.ObjectId;
@@ -25,4 +25,4 @@ const CheckInRecordSchema: Schema = new Schema({
   processed: { type: Boolean, default: false }, // Flag to indicate if the check-in has been processed, to avoid double counting and multiple queries
 });
 
-export default mongoose.model<CheckInRecord>('Check', CheckInRecordSchema);
+export default mongoose.model<ICheckInRecord>('Check', CheckInRecordSchema);

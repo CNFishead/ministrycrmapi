@@ -5,10 +5,7 @@ import BillingAccount, { BillingAccountType } from '../models/BillingAccount';
 import slugify from 'slugify';
 import Notification from '../../notification/model/Notification';
 import { ErrorUtil } from '../../../middleware/ErrorUtil';
-import { ModelKey, ModelMap } from '../../../utils/ModelMap';
-import Token from '../models/TokenSchema';
-import Member from '../../../models/Member';
-import PartnerSchema from '../../../models/PartnerSchema';
+import { ModelKey, ModelMap } from '../../../utils/ModelMap'; 
 
 type RegisterInput = {
   userInfo: {
@@ -125,7 +122,7 @@ export class RegisterHandler {
       this.data.partnerid ? this.data.partnerid : process.env.SHEPHERD_PARTNER_KEY
     );
 
-    const [partner] = await PartnerSchema.aggregate([
+    const [partner] = await this.modelMap['partner'].aggregate([
       {
         $match: {
           // can be the id, or the businessName
@@ -175,7 +172,7 @@ export class RegisterHandler {
     this.user = await this.modelMap['auth'].create(this.data.userInfo);
 
     // create a token for email verification
-    const { token } = await Token.issue({
+    const { token } = await this.modelMap['token'].issue({
       type: 'EMAIL_VERIFY',
       email: this.user.email,
       ttlMs: 3600000, // 1 hour
@@ -195,7 +192,7 @@ export class RegisterHandler {
    * @throws {Error} If the member creation fails.
    */
   private async createMember() {
-    this.member = await Member.create({
+    this.member = await this.modelMap['member'].create({
       firstName: this.user.firstName,
       lastName: this.user.lastName,
       email: this.user.email,
@@ -314,7 +311,7 @@ export class RegisterHandler {
     if (!user) throw new Error('User not found');
 
     // Use the Token schema to issue a new email verification token
-    const { token } = await Token.issue({
+    const { token } = await this.modelMap['token'].issue({
       userId: user._id,
       type: 'EMAIL_VERIFY',
       email: user.email,
@@ -332,7 +329,7 @@ export class RegisterHandler {
    */
   public async verifyEmail(token: string): Promise<{ message: string; user: UserType }> {
     // Validate the token using the TokenSchema system
-    const tokenDoc = await Token.validateRaw({ rawToken: token, type: 'EMAIL_VERIFY' });
+    const tokenDoc = await this.modelMap['token'].validateRaw({ rawToken: token, type: 'EMAIL_VERIFY' });
     if (!tokenDoc) throw new ErrorUtil('Invalid or expired token', 400);
 
     // Get the user from the token document
@@ -344,7 +341,7 @@ export class RegisterHandler {
     await user.save();
 
     // Consume the token so it can't be used again
-    await Token.consume(tokenDoc._id as mongoose.Types.ObjectId);
+    await this.modelMap['token'].consume(tokenDoc._id as mongoose.Types.ObjectId);
 
     return { message: 'Email verified successfully', user };
   }
