@@ -79,8 +79,9 @@ app.use(errorHandler);
 app.use(express.static(path.join(__dirname, '../public')));
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('API is running... Shepherds of Christ Ministries');
+  res.status(201).sendFile(path.join(__dirname, '../public/index.html'));
 });
+
 
 const numCPUs = os.cpus().length;
 const maxWorkers = Math.min(numCPUs, Number(process.env.CORE_CAP));

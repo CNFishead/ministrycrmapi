@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ShepherdCMS API - Ministry Management Platform</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(
+          135deg,
+          rgb(60, 98, 85) 0%,
+          rgb(60, 98, 85) 50%,
+          rgb(234, 231, 177) 100%
+        );
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        color: #333;
+      }
+
+      .container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        max-width: 600px;
+        width: 100%;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .logo {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, rgb(60, 98, 85) 0%, rgb(234, 231, 177) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 32px;
+        color: white;
+        font-weight: 600;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, rgb(60, 98, 85) 0%, rgb(234, 231, 177) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 10px;
+        line-height: 1.2;
+      }
+
+      .subtitle {
+        font-size: 1.1rem;
+        color: #6b7280;
+        margin-bottom: 30px;
+        font-weight: 400;
+      }
+
+      .status-card {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+      }
+
+      .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+        color: #52a058;
+        margin-bottom: 10px;
+      }
+
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        background: #52a058;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      .timestamp {
+        font-size: 0.9rem;
+        color: #6b7280;
+        font-family: 'Monaco', 'Menlo', monospace;
+      }
+
+      .api-info {
+        background: linear-gradient(135deg, #f0f9f0, #fefde8);
+        border: 1px solid #52a058;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+
+      .api-version {
+        font-size: 0.9rem;
+        color: #52a058;
+        font-weight: 500;
+      }
+
+      .footer {
+        font-size: 0.85rem;
+        color: #6b7280;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 20px;
+        margin-top: 20px;
+      }
+
+      .footer a {
+        color: #52a058;
+        text-decoration: none;
+      }
+
+      .footer a:hover {
+        text-decoration: underline;
+      }
+
+      .homepage-button {
+        display: inline-block;
+        background: linear-gradient(135deg, rgb(60, 98, 85) 0%, rgb(234, 231, 177) 100%);
+        color: white;
+        text-decoration: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin: 15px 0;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(82, 160, 88, 0.3);
+      }
+
+      .homepage-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(82, 160, 88, 0.4);
+        text-decoration: none;
+      }
+
+      @media (max-width: 480px) {
+        .container {
+          padding: 30px 20px;
+        }
+
+        h1 {
+          font-size: 2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo">⛪</div>
+
+      <h1>ShepherdCMS</h1>
+      <p class="subtitle">Ministry Management Platform API</p>
+
+      <div class="status-card">
+        <div class="status-indicator">
+          <span class="status-dot"></span>
+          API Status: Online & Ready
+        </div>
+        <div class="timestamp" id="timestamp">Loading...</div>
+      </div>
+
+      <div class="api-info">
+        <div class="api-version">API Version 1.0 | Shepherds of Christ Ministries</div>
+      </div>
+
+      <a href="https://shepherdcms.org/" target="_blank" class="homepage-button">
+        Visit ShepherdCMS Homepage
+      </a>
+
+      <div class="footer">
+        <p>Empowering ministries through technology</p>
+        <p>
+          <a href="/api/v1" target="_blank">View API Documentation</a> | Built with ❤️ for ministry
+          leaders
+        </p>
+      </div>
+    </div>
+
+    <script>
+      function updateTimestamp() {
+        const now = new Date();
+        const options = {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          timeZoneName: 'short',
+        };
+
+        document.getElementById('timestamp').textContent = `Last Updated: ${now.toLocaleDateString(
+          'en-US',
+          options
+        )}`;
+      }
+
+      // Update timestamp immediately and then every second
+      updateTimestamp();
+      setInterval(updateTimestamp, 1000);
+    </script>
+  </body>
+</html>
