@@ -123,6 +123,7 @@ export class AdminProfileHandler extends CRUDHandler<AdminType> {
                   _id: 1,
                   user: 1,
                   roles: 1,
+                  permissions: 1,
                   permissionsCount: 1,
                   createdAt: 1,
                   updatedAt: 1,
@@ -147,4 +148,5 @@ export class AdminProfileHandler extends CRUDHandler<AdminType> {
       }
     }
   }
+  
 }

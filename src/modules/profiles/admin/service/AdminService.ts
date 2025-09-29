@@ -34,4 +34,6 @@ export default class AdminService extends CRUDService {
 
     return await profile.save();
   }
+
+  
 }

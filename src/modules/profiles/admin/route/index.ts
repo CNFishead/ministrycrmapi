@@ -15,7 +15,7 @@ router.route('/health').get((req, res) => {
 
 router.use(AuthMiddleware.protect);
 router.use(AuthMiddleware.authorizeRoles(RolesConfig.getDefaultPermissionsForRole('admin')) as any);
-router.route('/profile/:id').get(service.getResource);
+router.route('/profile').get(service.getResource);
 
 router.route('/').post(service.create).get(service.getResources);
 router.route('/:id').get(service.getResource).put(service.updateResource).delete(service.removeResource);
