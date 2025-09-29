@@ -2,8 +2,8 @@ import { NextFunction, Response } from "express";
 import asyncHandler from "../../middleware/asyncHandler";
 import error from "../../middleware/error";
 import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
-import Family from "../../models/Family";
-import FeatureSchema from "../../models/FeatureSchema";
+import Family from "../../models/Family"; 
+import FeatureSchema from "../../modules/auth/models/FeatureSchema";
 
 /**
  * @description updates an object in the database

@@ -2,8 +2,7 @@ import { NextFunction, Response } from 'express';
 import asyncHandler from '../../middleware/asyncHandler';
 import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
 import error from '../../middleware/error';
-import CheckInRecord from '../../modules/ministry/models/CheckInRecord';
-import mongoose from 'mongoose';
+import CheckInRecord from '../../modules/ministry/models/CheckInRecord'; 
 import CheckInSummary from '../../modules/ministry/models/CheckInSummary';
 
 /**

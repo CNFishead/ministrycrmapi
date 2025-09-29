@@ -2,11 +2,11 @@ import { NextFunction, Response } from "express";
 import asyncHandler from "../../middleware/asyncHandler";
 import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
 import error from "../../middleware/error";
-import mongoose from "mongoose";
-import FeatureSchema from "../../models/FeatureSchema";
+import mongoose from "mongoose"; 
 import parseQueryKeywords from "../../utils/parseQueryKeywords";
 import parseFilterOptions from "../../utils/parseFilterOptions";
 import parseSortString from "../../utils/parseSortString";
+import FeatureSchema from "../../modules/auth/models/FeatureSchema";
 
 /**
  * @description       Gets a collection of documents from the database

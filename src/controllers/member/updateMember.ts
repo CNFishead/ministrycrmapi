@@ -1,7 +1,6 @@
 import asyncHandler from '../../middleware/asyncHandler';
-import error from '../../middleware/error';
-import Member from '../../models/Member';
-import Ministry from '../../models/Ministry';
+import error from '../../middleware/error'; 
+import MemberModel from '../../modules/ministry/models/Member.model';
 import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
 import { Response } from 'express';
 
@@ -26,7 +25,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       return res.status(400).json({ message: 'Member ID is required', success: false });
     if (!req.body?.member)
       return res.status(400).json({ message: 'Member object is required', success: false });
-    const _m = await Member.findById(req.params?.memberId);
+    const _m = await MemberModel.findById(req.params?.memberId);
 
     // check if _m ministry is different from the req.body.member.ministry, if it is, we want to update each ministry
     // to include the member in the ministry
@@ -41,7 +40,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     //     }
     //   }
     // }
-    const member = await Member.findByIdAndUpdate(
+    const member = await MemberModel.findByIdAndUpdate(
       _m?._id,
       { ...req.body?.member },
       { runValidators: true, new: true }

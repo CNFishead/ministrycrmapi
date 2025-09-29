@@ -1,9 +1,6 @@
-import asyncHandler from '../../middleware/asyncHandler';
-import Ministry from '../../models/Ministry';
+import asyncHandler from '../../middleware/asyncHandler'; 
 import { Response, Request } from 'express';
-import crypto from 'crypto';
-import Member from '../../models/Member';
-import createCustomer from '../paymentControllers/createCustomer';
+import crypto from 'crypto';  
 import PaymentProcessorFactory from '../../factory/PaymentProcessorFactory';
 import moment from 'moment';
 import sendMailSparkPost from '../../utils/sendMailSparkPost';
@@ -11,6 +8,8 @@ import generateToken from '../../utils/generateToken';
 import PartnerSchema from '../../models/PartnerSchema';
 import mongoose from 'mongoose';
 import User from '../../modules/auth/models/User';
+import MemberModel from '../../modules/ministry/models/Member.model';
+import MinistryModel from '../../modules/ministry/models/Ministry.model';
 /**
  * @description: this function registers a new account to the database.
  *               It will check if the email is already in use, if it is, it will throw an error
@@ -72,7 +71,7 @@ export default asyncHandler(async (req: Request, res: Response) => {
       ...req.body.userInfo,
     });
 
-    const member = await Member.create({
+    const member = await MemberModel.create({
       firstName: newUser.firstName,
       lastName: newUser.lastName,
       email: newUser.email,
@@ -83,7 +82,7 @@ export default asyncHandler(async (req: Request, res: Response) => {
 
     // on registration we need to create a ministry object for the user who created the account
     // pass in the ministry object from the request body
-    const ministry = await Ministry.create({
+    const ministry = await MinistryModel.create({
       leader: member._id,
       ...req.body.ministryInfo,
       isMainMinistry: true,
@@ -93,7 +92,7 @@ export default asyncHandler(async (req: Request, res: Response) => {
 
     // if the ministry object is not created, we need to delete the user and member objects
     if (!ministry) {
-      await removeCustomerData([newUser.id, User], [member.id, Member]);
+      await removeCustomerData([newUser.id, User], [member.id, MemberModel]);
       return res.status(400).json({ message: 'Error Creating Ministry' });
     }
 

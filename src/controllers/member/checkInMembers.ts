@@ -2,14 +2,11 @@ import asyncHandler from '../../middleware/asyncHandler';
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
 import error from '../../middleware/error';
-import Family from '../../models/Family';
-import Member from '../../models/Member';
-import MemberType from '../../types/MemberType';
-import moment from 'moment';
-import Ministry, { MinistryType } from '../../models/Ministry';
-import mongoose from 'mongoose';
-import User from '../../modules/auth/models/User';
-import CheckInRecord from '../../modules/ministry/models/CheckInRecord';
+import Family from '../../models/Family';  
+import moment from 'moment';  
+import CheckInRecord from '../../modules/ministry/models/CheckInRecord'; 
+import MinistryModel, { IMinistry } from '../../modules/ministry/models/Ministry.model';
+import MemberModel from '../../modules/ministry/models/Member.model';
 /**
  * @description: This function will check in members for a ministry.
  * @param       {object} req: The request object from the client
@@ -30,14 +27,14 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       return res.status(400).json({ message: 'Visitors array is required', success: false });
     }
 
-    const ministry = await Ministry.findById(req.params.id);
+    const ministry = await MinistryModel.findById(req.params.id);
     if (!ministry) {
       return res.status(400).json({ message: 'Ministry not found', success: false });
     }
 
-    let mainMinistry: MinistryType | null = null;
+    let mainMinistry: IMinistry | null = null;
     if (!ministry.isMainMinistry) {
-      mainMinistry = await Ministry.findById(ministry.ownerMinistry);
+      mainMinistry = await MinistryModel.findById(ministry.ownerMinistry);
     } else {
       mainMinistry = ministry;
     }
@@ -76,7 +73,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
         }
 
         // create a new member object.
-        const newMember = await Member.create({
+        const newMember = await MemberModel.create({
           ...visitor,
           user: ministry.user,
           dateLastVisited: timestamp,
@@ -93,10 +90,10 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
         if (!newMember) {
           return res.status(400).json({ message: 'Error creating member', success: false });
         }
-        await Ministry.findByIdAndUpdate(ministry._id, { $push: { members: newMember._id } });
+        await MinistryModel.findByIdAndUpdate(ministry._id, { $push: { members: newMember._id } });
         // update the main ministry with the new member as well, if it is not the same as the ministry we are checking in to.
         if (ministry._id !== mainMinistry?._id) {
-          await Ministry.findByIdAndUpdate(mainMinistry?._id, {
+          await MinistryModel.findByIdAndUpdate(mainMinistry?._id, {
             $push: { members: newMember._id },
           });
         }
@@ -114,14 +111,14 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       // console.log(`Checking in visitor: ${v.firstName}`); // checking in visitor
       // console.log(v._id);
       if (v?._id) {
-        const member = await Member.findById(v._id);
+        const member = await MemberModel.findById(v._id);
         if (!member) {
           res.status(400).json({ message: 'Member not found', success: false });
           continue; // Skip to the next visitor if member not found
         }
         // console.log(`Member exists: ${member.fullName}`); // member exists, so we need to check them in.
         // member exists, so we need to check them in.
-        await Member.findByIdAndUpdate(
+        await MemberModel.findByIdAndUpdate(
           member._id,
           {
             ...v, // updates the member object fields with relevant data if changed on frontend
@@ -153,7 +150,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
         if (v.birthday !== undefined) {
           isChild = moment().diff(v.birthday, 'years') < 16;
         }
-        const newMember = await Member.create({
+        const newMember = await MemberModel.create({
           ...v,
           user: ministry.user,
           dateLastVisited: timestamp,
@@ -171,7 +168,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
           checkInDate: timestamp,
           location: req.body.checkInLocation,
         });
-        await Ministry.findByIdAndUpdate(ministry._id, { $push: { members: newMember._id } });
+        await MinistryModel.findByIdAndUpdate(ministry._id, { $push: { members: newMember._id } });
         await Family.findByIdAndUpdate(family._id, { $push: { members: newMember._id } });
       }
     }

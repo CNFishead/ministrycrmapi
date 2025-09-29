@@ -10,7 +10,7 @@ export default async (user: UserType) => {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        phone: user.phoneNumber,
+        // phone: user.phoneNumber,
       },
       {
         headers: {

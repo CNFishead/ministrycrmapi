@@ -2,8 +2,8 @@ import { NextFunction, Response } from "express";
 import asyncHandler from "../../middleware/asyncHandler";
 import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
 import error from "../../middleware/error";
-import mongoose from "mongoose";
-import FeatureSchema from "../../models/FeatureSchema";
+import mongoose from "mongoose"; 
+import FeatureSchema from "../../modules/auth/models/FeatureSchema";
 
 /**
  * @description       Gets a family from the database, that belongs to the account user, and returns it to the client

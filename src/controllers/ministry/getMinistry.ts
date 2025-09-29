@@ -2,7 +2,7 @@ import asyncHandler from '../../middleware/asyncHandler';
 import User from '../../modules/auth/models/User';
 import { Response, Request } from 'express';
 import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
-import Ministry from '../../models/Ministry';
+import Ministry from '../../modules/ministry/models/Ministry.model';
 import mongoose from 'mongoose';
 /**
  * @description: This function returns the result of a ministry object to the frontend

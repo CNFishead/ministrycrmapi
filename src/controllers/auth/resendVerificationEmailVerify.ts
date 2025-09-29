@@ -56,7 +56,7 @@ export default asyncHandler(async (req: Request, res: Response) => {
             name: user.fullName,
             protocol: protocol,
             hostname: hostName,
-            token: updatedUser!.emailVerificationToken,
+            // token: updatedUser!.emailVerificationToken,
           },
         },
       ],

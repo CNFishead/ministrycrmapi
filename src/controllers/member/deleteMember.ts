@@ -1,7 +1,7 @@
 import asyncHandler from '../../middleware/asyncHandler';
 import error from '../../middleware/error';
 import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
-import Member from '../../models/Member';
+import MemberModel from '../../modules/ministry/models/Member.model';
 import { Response } from 'express';
 import Ministry, { IMinistry as MinistryType } from '../../modules/ministry/models/Ministry.model';
 import CheckInRecord from '../../modules/ministry/models/CheckInRecord';
@@ -9,7 +9,7 @@ import CheckInRecord from '../../modules/ministry/models/CheckInRecord';
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   try {
     const { memberId } = req.params!;
-    const member = await Member.findById(memberId);
+    const member = await MemberModel.findById(memberId);
     if (!member) {
       return res.status(200).json({ message: 'No Member Found' });
     } else {
@@ -45,7 +45,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response) => 
       await CheckInRecord.deleteMany({ _id: { $in: records.map((r) => r._id) } });
 
       // finally we want to delete the member from the database
-      await Member.findByIdAndDelete(memberId);
+      await MemberModel.findByIdAndDelete(memberId);
 
       return res.status(200).json({ message: 'Member Deleted', success: true });
     }

@@ -2,12 +2,12 @@ import mongoose from 'mongoose';
 import asyncHandler from '../../middleware/asyncHandler';
 import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
 import { Response } from 'express';
-import error from '../../middleware/error';
-import Ministry from '../../models/Ministry';
-import Member from '../../models/Member';
+import error from '../../middleware/error';  
 import parseQueryKeywords from '../../utils/parseQueryKeywords';
 import parseFilterOptions from '../../utils/parseFilterOptions';
 import parseSortString from '../../utils/parseSortString';
+import MinistryModel from '../../modules/ministry/models/Ministry.model';
+import MemberModel from '../../modules/ministry/models/Member.model';
 
 /**
  * @description - Returns information about a ministry's gender analytics, i.e. the number of males and females in the ministry
@@ -35,7 +35,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     ];
 
     // search for the ministry in question
-    const [data] = await Ministry.aggregate([
+    const [data] = await MinistryModel.aggregate([
       {
         $match: {
           $and: [
@@ -53,7 +53,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
     if (!data) return res.status(404).json({ message: 'Ministry not found', success: false });
 
     // use the data to find all members in the ministry, group them together by gender and count them
-    const members = await Member.aggregate([
+    const members = await MemberModel.aggregate([
       {
         $match: { _id: { $in: data.members } },
       },

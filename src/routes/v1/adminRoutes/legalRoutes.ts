@@ -1,11 +1,5 @@
-import express from 'express';
-import createLegalFile from '../../../controllers/legal/createLegalFile';
-import updateLegalFile from '../../../controllers/legal/updateLegalFile';
-import deleteLegalFile from '../../../controllers/legal/deleteLegalFile';
+import express from 'express'; 
 const router = express.Router();
 
-// Import all of our routes
-router.route('/').post(createLegalFile);
-router.route('/:id').put(updateLegalFile).delete(deleteLegalFile);
-
+// Import all of our routes 
 export default router;

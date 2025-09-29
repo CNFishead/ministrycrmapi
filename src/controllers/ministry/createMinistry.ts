@@ -2,7 +2,7 @@ import { Response } from "express";
 import asyncHandler from "../../middleware/asyncHandler";
 import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
 import error from "../../middleware/error";
-import Ministry from "../../models/Ministry";
+import Ministry from '../../modules/ministry/models/Ministry.model';
 
 /**
  * @description Creates a new ministry under the main ministry

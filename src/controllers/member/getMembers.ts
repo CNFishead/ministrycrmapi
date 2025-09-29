@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import asyncHandler from '../../middleware/asyncHandler';
 import error from '../../middleware/error';
-import Member from '../../models/Member';
+import MemberModel from '../../modules/ministry/models/Member.model';
 import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
 import mongoose from 'mongoose';
 import parseFilterOptions from '../../utils/parseFilterOptions';
@@ -39,7 +39,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
       ...(Object.keys(filterIncludeOptions[0]).length > 0 ? filterIncludeOptions : []), // Only include if there are filters
     ];
 
-    const [data] = await Member.aggregate([
+    const [data] = await MemberModel.aggregate([
       {
         $match: {
           $and: [

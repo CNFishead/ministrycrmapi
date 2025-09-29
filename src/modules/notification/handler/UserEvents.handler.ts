@@ -1,10 +1,6 @@
 import { Model } from 'mongoose';
-import { ErrorUtil } from '../../../middleware/ErrorUtil';
-import AdminModel from '../../profiles/admin/model/AdminModel';
-import { AthleteModel } from '../../profiles/athlete/models/AthleteModel';
-import { ClaimType } from '../../auth/model/ClaimSchema';
-import User, { UserType } from '../../auth/model/User';
-import TeamModel from '../../profiles/team/model/TeamModel';
+import { ErrorUtil } from '../../../middleware/ErrorUtil'; 
+import User, { UserType } from '../../auth/models/User'; 
 import { EmailService } from '../email/EmailService';
 import Notification from '../model/Notification';
 

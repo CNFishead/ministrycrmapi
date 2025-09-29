@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import asyncHandler from "../../middleware/asyncHandler";
-import Member from "../../models/Member";
+import MemberModel from '../../modules/ministry/models/Member.model';
 import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
 import { Response } from "express";
 import error from "../../middleware/error"; 
@@ -18,7 +18,7 @@ import error from "../../middleware/error";
 export default asyncHandler(async (req: AuthenticatedRequest, res: Response, next: any) => {
   try {
     if (!req.params?.memberId) return res.status(400).json({ message: "Member ID is required", success: false });
-    const [data] = await Member.aggregate([
+    const [data] = await MemberModel.aggregate([
       {
         $match: { _id: new mongoose.Types.ObjectId(req.params.memberId) },
       },

@@ -1,10 +1,8 @@
 import asyncHandler from '../../middleware/asyncHandler';
 import errorHandler from '../../middleware/error';
 import { Response } from 'express';
-import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
-import User from '../../modules/auth/models/User';
-import userObject from '../../utils/userObject';
-import Ministry from '../../models/Ministry';
+import { AuthenticatedRequest } from '../../types/AuthenticatedRequest'; 
+import Ministry from '../../modules/ministry/models/Ministry.model';
 /**
  * @description: This function updates the ministry object in the database
  * @param       {object} req: The request object from the client

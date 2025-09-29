@@ -1,8 +1,8 @@
 import { NextFunction, Response } from "express";
 import asyncHandler from "../../middleware/asyncHandler";
 import { AuthenticatedRequest } from "../../types/AuthenticatedRequest";
-import error from "../../middleware/error";
-import FeatureSchema from "../../models/FeatureSchema";
+import error from "../../middleware/error"; 
+import FeatureSchema from "../../modules/auth/models/FeatureSchema";
 
 /**
  * @description          Creates an object in the database.

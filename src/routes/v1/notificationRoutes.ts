@@ -1,9 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { protect, admin } from '../../middleware/auth';
-import getNotifications from '../../controllers/notifications/getNotifications';
-import createNotification from '../../controllers/notifications/createNotification';
-import updateNotification from '../../controllers/notifications/updateNotification';
+import { protect, admin } from '../../middleware/auth'; 
 /**
  * @description - API routes for notifications
  * @access      Private - Only logged in users can access the routes
@@ -20,10 +17,6 @@ import updateNotification from '../../controllers/notifications/updateNotificati
  * @lastUpdatedBy Austin Howard
  * @lastUpdated 2023-07-28T14:55:17.000-05:00
  */
-router.use(protect());
-
-router.route('/').get(getNotifications).post(createNotification); // get all notifications and create a notification
-router.route('/all').put(updateNotification); // update all notifications to read
-router.route('/:id').put(updateNotification).delete(); // update a single notification and delete a single notification
+router.use(protect()); 
 
 export default router;

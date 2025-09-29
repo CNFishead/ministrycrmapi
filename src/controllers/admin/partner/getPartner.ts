@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
-import asyncHandler from '../../../middleware/asyncHandler';
-import Member from '../../../models/Member';
+import asyncHandler from '../../../middleware/asyncHandler'; 
 import { AuthenticatedRequest } from '../../../types/AuthenticatedRequest';
 import { Response } from 'express';
 import error from '../../../middleware/error';

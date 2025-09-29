@@ -2,11 +2,9 @@ import asyncHandler from '../../middleware/asyncHandler';
 import User from '../../modules/auth/models/User';
 import { Response, Request } from 'express';
 import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
-import error from '../../middleware/error';
-import Ministry from '../../models/Ministry';
-import Member from '../../models/Member';
-import Family from '../../models/Family';
-import MemberType from '../../types/MemberType';
+import error from '../../middleware/error'; 
+import MemberModel from '../../modules/ministry/models/Member.model';
+import Family from '../../models/Family'; 
 import moment from 'moment';
 /**
  * @description: This function will create a new member for the ministry.
@@ -83,7 +81,7 @@ export default asyncHandler(async (req: AuthenticatedRequest, res: Response, nex
 
       return res.status(400).json({ message: 'Birthday is required', success: false });
     }
-    const member = await Member.create({ ...req.body, user: req.user._id });
+    const member = await MemberModel.create({ ...req.body, user: req.user._id });
     if (!member)
       return res.status(400).json({ message: 'Unable to create Member', success: false });
     // add the member to the family object

@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
 import parseFilterOptions from '../../utils/parseFilterOptions';
 import parseQueryKeywords from '../../utils/parseQueryKeywords';
 import parseSortString from '../../utils/parseSortString';
-import Ministry from '../../models/Ministry';
+import Ministry from '../../modules/ministry/models/Ministry.model';
 import User from '../../modules/auth/models/User';
 
 /**
