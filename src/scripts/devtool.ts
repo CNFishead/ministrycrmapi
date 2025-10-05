@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { ModelKey, ModelMap } from '../utils/ModelMap';
+import colors from 'colors';
 
 // Add other models as needed
 
@@ -54,7 +55,7 @@ class DevTool {
     console.log('\n📈 Database Statistics:');
     console.log('------------------------');
 
-    try { 
+    try {
       // Add more stats as needed
       console.log('------------------------\n');
     } catch (error) {
@@ -70,8 +71,32 @@ class DevTool {
   async customTask(): Promise<void> {
     console.log('🛠️  Running custom task...');
     try {
-      // Insert your custom database operations here
-      // Example: Clean up old records, update fields, etc.
+      //1. find all members
+      //2. for each member, attempt to place their church ministry in their ministry array if not already present
+      const members = await this.modelMap['member'].find({});
+      console.log(`Found ${members.length} members`);
+      for (const member of members) {
+        // find the ministry where the member.user field is equal to the ministry.user field and where the ministry isMainMinistry is true
+        const ministry = await this.modelMap['ministry'].findOne({
+          user: member.user,
+          isMainMinistry: true,
+        });
+        if (ministry) {
+          // check if the member's ministries array already contains the ministry._id
+          if (!member.ministry.includes(ministry._id)) {
+            member.ministry.push(ministry._id);
+            await member.save();
+            console.log(`Updated member ${member._id} with ministry ${ministry._id}`);
+          }
+        } else {
+          console.log(`No main ministry found for member ${member._id}: ${member.fullName}`);
+          // delete the member if no ministry found
+          // await this.modelMap['member'].deleteOne({ _id: member._id });
+          console.log(`Deleted member ${member._id} as no ministry found`);
+        }
+        console.log(`Processed member ${member._id}`);
+      }
+      console.log('\n✅ Custom task completed successfully');
     } catch (error) {
       console.log('❌ Error in custom task:', error);
     }

@@ -30,7 +30,7 @@ export interface UserType extends mongoose.Document {
   createdAt: Date;
   updatedAt: Date;
   isEmailVerified: boolean;
-  acceptedPolicies: Record<string, number>;
+  acceptedPolicies: Record<string, string>;
   permissions: string[];
   lastSignedIn: Date | undefined | null;
   emailVerificationToken: string | undefined | null;
@@ -95,7 +95,7 @@ const UserSchema = new mongoose.Schema(
     },
     acceptedPolicies: {
       type: Map,
-      of: Number, // version stamp when they accepted the policy
+      of: String,
     },
     resetPasswordToken: {
       type: String,

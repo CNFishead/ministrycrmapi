@@ -1,5 +1,5 @@
 import { ErrorUtil } from '../../../middleware/ErrorUtil';
-import { CRUDHandler } from '../../../utils/baseCRUD';
+import { CRUDHandler, PaginationOptions } from '../../../utils/baseCRUD';
 import { BillingValidator } from '../../../utils/billingValidation';
 import { ModelKey, ModelMap } from '../../../utils/ModelMap';
 import MinistryModel, { IMinistry } from '../models/Ministry.model';
@@ -30,5 +30,52 @@ export class MinistryHandler extends CRUDHandler<IMinistry> {
       needsBillingSetup: billingValidation.needsUpdate,
       billingValidation,
     } as any as IMinistry;
+  }
+  async fetchAll(options: PaginationOptions): Promise<{ entries: any[]; metadata: any[] }[]> {
+    return await this.Schema.aggregate([
+      {
+        $match: {
+          $and: [...options.filters],
+          ...(options.query.length > 0 && { $or: options.query }),
+        },
+      },
+      {
+        $sort: options.sort,
+      },
+      {
+        $facet: {
+          metadata: [
+            { $count: 'totalCount' },
+            { $addFields: { page: options.page, limit: options.limit } },
+          ],
+          entries: [
+            { $skip: (options.page - 1) * options.limit },
+            { $limit: options.limit },
+            {
+              $lookup: {
+                from: 'members',
+                localField: 'leader',
+                foreignField: '_id',
+                as: 'leader',
+              },
+            },
+            {
+              $unwind: {
+                path: '$leader',
+                preserveNullAndEmptyArrays: true,
+              },
+            },
+          ],
+        },
+      },
+    ]);
+  }
+
+  async fetch(id: string): Promise<any | null> {
+    return await this.Schema.findById(id)
+      .populate('leader')
+      .populate('admins')
+      .populate('members')
+      .lean();
   }
 }
