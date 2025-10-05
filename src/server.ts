@@ -107,7 +107,7 @@ if (cluster.isPrimary) {
     res.json({ message: `Handled by ${process.pid}` });
   });
 
-  app.listen(3000, () => {
+  app.listen(5001, () => {
     console.log(`Worker ${process.pid} started`);
   });
   //worker process runs the server

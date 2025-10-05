@@ -7,6 +7,7 @@ import PartnerSchema from '../models/PartnerSchema';
 import Token from '../modules/auth/models/TokenSchema';
 import CheckInRecord from '../modules/ministry/models/CheckInRecord';
 import CheckInSummary from '../modules/ministry/models/CheckInSummary';
+import Receipt from '../modules/payment/models/Receipt';
 
 export type ModelKey =
   | 'auth'
@@ -17,7 +18,8 @@ export type ModelKey =
   | 'partner'
   | 'token'
   | 'check-rec'
-  | 'check-sum';
+  | 'check-sum'
+  | 'receipt';
 
 export const ModelMap: Record<ModelKey, any> = {
   auth: User,
@@ -29,4 +31,5 @@ export const ModelMap: Record<ModelKey, any> = {
   token: Token,
   'check-rec': CheckInRecord,
   'check-sum': CheckInSummary,
+  receipt: Receipt,
 };

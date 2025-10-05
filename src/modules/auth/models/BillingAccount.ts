@@ -40,7 +40,7 @@ const Schema = new mongoose.Schema(
     profileId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'AthleteProfile',
+      ref: 'Ministry',
     },
     credits: {
       type: Number,

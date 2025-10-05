@@ -9,6 +9,7 @@ import eventRoutes from './eventRoutes';
 import utilRoutes from './utilRoutes';
 import supportRoutes from './supportRoutes';
 import profileRoutes from '../../modules/profiles/routes/index';
+import paymentRoutes from '../../modules/payment/routes/index';
 
 const router = express.Router();
 
@@ -17,6 +18,7 @@ router.use('/auth', authRoutes);
 router.use('/family', familyRoutes);
 router.use('/user', userRoutes);
 router.use('/upload', uploadRoutes);
+router.use('/payment', paymentRoutes);
 router.use('/ministry', ministryRoutes);
 router.use('/notification', notificationRoutes);
 router.use('/event', eventRoutes);

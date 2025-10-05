@@ -13,7 +13,11 @@ export class MinistryHandler extends CRUDHandler<IMinistry> {
   // fetch a ministry for a profile, this will include whether or not the selected profile needs to complete
   // billing setup
   async getMinistryForProfile(profileId: string) {
-    const ministry = await this.Schema.findOne({ _id: profileId }).lean();
+    const ministry = await this.Schema.findOne({
+      admins: {
+        $in: [profileId],
+      },
+    }).lean();
     if (!ministry) {
       throw new ErrorUtil('Ministry not found', 404);
     }
