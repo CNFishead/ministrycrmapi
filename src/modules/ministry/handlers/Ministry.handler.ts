@@ -17,7 +17,12 @@ export class MinistryHandler extends CRUDHandler<IMinistry> {
       admins: {
         $in: [profileId],
       },
-    }).lean();
+    })
+      .populate({
+        path: 'linkedUsers.user',
+        model: 'User',
+      })
+      .lean();
     if (!ministry) {
       throw new ErrorUtil('Ministry not found', 404);
     }
@@ -77,5 +82,35 @@ export class MinistryHandler extends CRUDHandler<IMinistry> {
       .populate('admins')
       .populate('members')
       .lean();
+  }
+
+  async attach(id: string, userId: string): Promise<void> {
+    // Check if user is already linked to this ministry
+    const existingLink = await this.Schema.findOne({
+      _id: id,
+      admins: { $in: [userId] },
+    });
+
+    if (existingLink) {
+      console.info(`[ProfileHandler]: User ${userId} is already linked to ministry ${id}`);
+
+      await this.modelMap['auth'].findByIdAndUpdate(userId, {
+        $set: { 'profileRefs.ministry': id },
+      });
+
+      return;
+    }
+
+    await this.Schema.findByIdAndUpdate(id, {
+      $addToSet: {
+        linkedUsers: {
+          user: userId,
+          role: 'member',
+        },
+      },
+    });
+    await this.modelMap['admin'].findByIdAndUpdate(userId, {
+      $set: { 'profileRefs.ministry': id },
+    });
   }
 }

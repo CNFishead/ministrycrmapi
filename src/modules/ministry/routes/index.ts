@@ -15,6 +15,7 @@ router.use('/analytic', analyticRoutes);
 router.route('/').get(service.getResources);
 router.route('/:id').get(service.getResource); 
 // router.route('/:id/checkin').post(checkInMembers);
+router.route('/:id/invite-user').post(AuthMiddleware.protect, service.inviteUserToMinistry);
 router.route('/profile/:profileId').get(service.getMinistryForProfile);
 
 router.use(AuthMiddleware.protect);

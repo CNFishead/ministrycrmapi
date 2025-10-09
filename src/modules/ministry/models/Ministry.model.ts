@@ -1,5 +1,10 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
+import { UserType } from '../../auth/models/User';
 
+export interface TeamMember {
+  user: UserType;
+  role: string;
+}
 export interface IMinistry extends mongoose.Document {
   _id: string;
   user: string;
@@ -17,13 +22,11 @@ export interface IMinistry extends mongoose.Document {
   members: string[];
   events: string[];
   announcements: string[];
-  features: string[];
-  payor: string;
-  isPaidAccount: boolean;
-  nextPayment: Date;
-  initialPayment: Date;
   ownerMinistry: string;
   isMainMinistry: boolean;
+  admins: string[];
+  leaders: string[];
+  linkedUsers: TeamMember[]; // References to users with access
   createdAt: Date;
   updatedAt: Date;
   isSubMinistry: boolean;
@@ -77,26 +80,17 @@ const MinistrySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Member',
     },
+    linkedUsers: [
+      {
+        user: { type: Schema.Types.ObjectId, ref: 'User' },
+        role: { type: String, enum: ['admin', 'member', 'leader', 'deacon'], default: 'member' },
+      },
+    ],
+
     // party responsible for subscription payments
     payor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-    },
-    initialPayment: {
-      type: Date,
-      // required: true,
-    },
-    nextPayment: {
-      type: Date,
-      // required: true,
-    },
-    isPaidAccount: {
-      type: Boolean,
-      default: true,
-    },
-    credits: {
-      type: Number,
-      default: 0,
     },
     // ownerMinistry is the ministry that owns this ministry
     // this means that this ministry is a sub ministry of the ownerMinistry
