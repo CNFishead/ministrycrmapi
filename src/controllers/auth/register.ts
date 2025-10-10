@@ -132,7 +132,7 @@ export default asyncHandler(async (req: Request, res: Response) => {
     // }
 
     // set the next payment date for the user, from two weeks from the current date
-    ministry.nextPayment = moment().add(2, 'weeks').toDate();
+    // ministry.nextPayment = moment().add(2, 'weeks').toDate();
 
     // now we need to update the users emailVerificationToken and expire
     newUser.emailVerificationToken = await crypto.randomBytes(20).toString('hex');
