@@ -3,10 +3,10 @@ import sgMail from '@sendgrid/mail';
 import { EmailPayload, EmailProvider } from './EmailProvider';
 import { ErrorUtil } from '../../../middleware/ErrorUtil';
 
-sgMail.setApiKey(process.env.SEND_GRID_API_KEY || '');
 
 export class SendGridProvider implements EmailProvider {
   async sendEmail({ to, subject, html, from, data, templateId }: EmailPayload): Promise<void> {
+    sgMail.setApiKey(process.env.SEND_GRID_API_KEY || '');
     if (templateId) {
       await sgMail.send({
         to,

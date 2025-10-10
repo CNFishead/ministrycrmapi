@@ -32,30 +32,30 @@ export class MinistryService extends CRUDService {
   public inviteUserToMinistry = asyncHandler(
     async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
       try {
-        // get the team profile
-        const team = await this.handler.fetch(req.params.id);
-        if (!team) {
-          return res.status(404).json({ message: 'Team not found' });
+        // get the resource profile
+        const resource = await this.handler.fetch(req.params.id);
+        if (!resource) {
+          return res.status(404).json({ message: 'resource not found' });
         }
 
         // create a token hash in the database
         const { token } = await this.modelMap['token'].issue({
           type: 'TEAM_INVITE',
           email: req.body.inviteeEmail,
-          teamProfileId: team._id,
+          teamProfileId: resource._id,
           ttlMs: 48 * 60 * 60 * 1000, // 48 hours
         });
 
         // send invitation email through the email service
-        eventBus.publish('team.invited', {
-          profile: team,
+        eventBus.publish('ministry.invited', {
+          profile: resource,
           invitationData: req.body,
           additionalData: { token },
         });
 
-        return res.status(200).json({ message: 'User invited to team successfully' });
+        return res.status(200).json({ message: 'User invited to resource successfully' });
       } catch (err) {
-        console.error('Error inviting user to team:', err);
+        console.error('Error inviting user to resource:', err);
         return error(err, req, res);
       }
     }
