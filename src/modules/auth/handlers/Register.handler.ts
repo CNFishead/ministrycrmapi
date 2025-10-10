@@ -5,7 +5,7 @@ import BillingAccount, { BillingAccountType } from '../models/BillingAccount';
 import slugify from 'slugify';
 import Notification from '../../notification/model/Notification';
 import { ErrorUtil } from '../../../middleware/ErrorUtil';
-import { ModelKey, ModelMap } from '../../../utils/ModelMap'; 
+import { ModelKey, ModelMap } from '../../../utils/ModelMap';
 
 type RegisterInput = {
   userInfo: {
@@ -69,6 +69,13 @@ export class RegisterHandler {
       await this.createMinistry();
       await this.createBillingAccount(this.ministry._id.toString(), 'ministry');
       // await this.createProfiles();
+
+
+      // update profileRefs with ministry id
+      await this.modelMap['auth'].updateOne(
+        { _id: this.user._id },
+        { $set: { 'profileRefs.ministry': this.ministry._id.toString() } }
+      );
 
       const token = jwt.sign(
         {
@@ -210,9 +217,8 @@ export class RegisterHandler {
       leader: this.member._id,
       ...this.data.ministryInfo,
       isMainMinistry: true,
-      features: this.data.features,
       user: this.user._id,
-      admins: [this.user._id],
+      linkedUsers: [{ user: this.user._id, role: 'admin' }],
     });
 
     if (!this.ministry) {
@@ -329,7 +335,10 @@ export class RegisterHandler {
    */
   public async verifyEmail(token: string): Promise<{ message: string; user: UserType }> {
     // Validate the token using the TokenSchema system
-    const tokenDoc = await this.modelMap['token'].validateRaw({ rawToken: token, type: 'EMAIL_VERIFY' });
+    const tokenDoc = await this.modelMap['token'].validateRaw({
+      rawToken: token,
+      type: 'EMAIL_VERIFY',
+    });
     if (!tokenDoc) throw new ErrorUtil('Invalid or expired token', 400);
 
     // Get the user from the token document
