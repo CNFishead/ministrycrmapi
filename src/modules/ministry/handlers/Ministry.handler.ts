@@ -84,11 +84,11 @@ export class MinistryHandler extends CRUDHandler<IMinistry> {
       .lean();
   }
 
-  async attach(id: string, userId: string): Promise<void> {
+  async attach(id: string, userId: string, data: any): Promise<void> {
     // Check if user is already linked to this ministry
     const existingLink = await this.Schema.findOne({
       _id: id,
-      admins: { $in: [userId] },
+      linkedUsers: { $elemMatch: { user: userId } },
     });
 
     if (existingLink) {
@@ -105,12 +105,9 @@ export class MinistryHandler extends CRUDHandler<IMinistry> {
       $addToSet: {
         linkedUsers: {
           user: userId,
-          role: 'member',
+          role: data.role || 'member',
         },
       },
-    });
-    await this.modelMap['admin'].findByIdAndUpdate(userId, {
-      $set: { 'profileRefs.ministry': id },
     });
   }
 }

@@ -6,6 +6,8 @@ import slugify from 'slugify';
 import Notification from '../../notification/model/Notification';
 import { ErrorUtil } from '../../../middleware/ErrorUtil';
 import { ModelKey, ModelMap } from '../../../utils/ModelMap';
+import { MinistryHandler } from '../../ministry/handlers/Ministry.handler';
+import Token from '../models/TokenSchema';
 
 type RegisterInput = {
   userInfo: {
@@ -65,17 +67,44 @@ export class RegisterHandler {
       this.data = data;
       // await this.validatePartner(); // Temporarily disabled since we have no partners
       await this.createUser();
-      await this.createMember();
-      await this.createMinistry();
-      await this.createBillingAccount(this.ministry._id.toString(), 'ministry');
-      // await this.createProfiles();
 
+      // we only want to run these if the data exists for it
+      if (this.data.ministryInfo) {
+        await this.createMember();
+        await this.createMinistry();
+        await this.createBillingAccount(this.ministry._id.toString(), 'ministry');
+        // await this.createProfiles();
+      }
 
-      // update profileRefs with ministry id
-      await this.modelMap['auth'].updateOne(
-        { _id: this.user._id },
-        { $set: { 'profileRefs.ministry': this.ministry._id.toString() } }
-      );
+      // we may be passed in a token,
+      if (this.data.token) {
+        const tokenDoc = await Token.validateRaw({
+          rawToken: this.data.token,
+          type: 'TEAM_INVITE',
+        });
+        // if valid, we can use the doc to link the user to the ministry
+        const ministryHandler = new MinistryHandler();
+        if (tokenDoc && tokenDoc.teamProfile) {
+          await ministryHandler.attach(tokenDoc.teamProfile as any, this.user._id, {
+            role: tokenDoc.meta?.role || 'member',
+          });
+
+          // Set the ministry from the invitation for profileRefs
+          this.ministry = await this.modelMap['ministry'].findById(tokenDoc.teamProfile);
+
+          // consume the token
+          await this.modelMap['token'].consume(tokenDoc._id as string);
+        }
+      }
+
+      // Only update profileRefs if we have a ministry (either created or invited to)
+      if (this.ministry?._id) {
+        console.log(`[RegisterHandler] setting profileRefs`);
+        await this.modelMap['auth'].updateOne(
+          { _id: this.user._id },
+          { $set: { 'profileRefs.ministry': this.ministry._id.toString() } }
+        );
+      }
 
       const token = jwt.sign(
         {
@@ -166,6 +195,20 @@ export class RegisterHandler {
     const existingUser = await this.modelMap['auth'].findOne({ email: this.data.userInfo.email });
     if (existingUser) {
       throw new Error('Email already registered');
+    }
+
+    // next if we have a token (invitation), we want to ensure that the email they are attempting to register with matches the invitation email
+    if (this.data.token) {
+      const tokenDoc = await this.modelMap['token'].validateRaw({
+        rawToken: this.data.token,
+        type: 'TEAM_INVITE',
+      });
+      if (!tokenDoc) {
+        throw new Error('Invalid or expired token');
+      }
+      if (tokenDoc.email !== this.data.userInfo.email) {
+        throw new Error('Email does not match invitation');
+      }
     }
 
     // create a slug of the user's full name
@@ -335,7 +378,7 @@ export class RegisterHandler {
    */
   public async verifyEmail(token: string): Promise<{ message: string; user: UserType }> {
     // Validate the token using the TokenSchema system
-    const tokenDoc = await this.modelMap['token'].validateRaw({
+    const tokenDoc = await Token.validateRaw({
       rawToken: token,
       type: 'EMAIL_VERIFY',
     });
@@ -350,7 +393,7 @@ export class RegisterHandler {
     await user.save();
 
     // Consume the token so it can't be used again
-    await this.modelMap['token'].consume(tokenDoc._id as mongoose.Types.ObjectId);
+    await Token.consume(tokenDoc._id as mongoose.Types.ObjectId);
 
     return { message: 'Email verified successfully', user };
   }

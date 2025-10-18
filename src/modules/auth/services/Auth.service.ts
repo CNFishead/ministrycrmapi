@@ -35,7 +35,7 @@ export default class AuthService {
   public login = asyncHandler(async (req: Request, res: Response): Promise<Response> => {
     try {
       const result = await this.authHandler.login(req);
-      return res.status(200).json({success: true, payload: result});
+      return res.status(200).json({ success: true, payload: result });
     } catch (err: any) {
       console.error(err);
       return error(err, req, res);
@@ -110,7 +110,7 @@ export default class AuthService {
 
         // Emit event for resending verification email
         eventBus.publish('email.verify', {
-          user: result.user,
+          ...result,
         });
 
         return res

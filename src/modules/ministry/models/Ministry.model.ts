@@ -83,7 +83,7 @@ const MinistrySchema = new mongoose.Schema(
     linkedUsers: [
       {
         user: { type: Schema.Types.ObjectId, ref: 'User' },
-        role: { type: String, enum: ['admin', 'member', 'leader', 'deacon'], default: 'member' },
+        role: { type: String, default: 'member' },
       },
     ],
 

@@ -2,7 +2,7 @@
 import mongoose, { Schema, Types, Document, Model } from 'mongoose';
 import crypto from 'crypto';
 
-type TokenType = 'PASSWORD_RESET' | 'EMAIL_VERIFY';
+type TokenType = 'PASSWORD_RESET' | 'EMAIL_VERIFY' | 'TEAM_INVITE';
 
 interface TokenAttrs {
   type: TokenType;
@@ -53,7 +53,7 @@ const TokenSchema = new Schema<TokenDoc, TokenModel>(
 
     user: { type: Schema.Types.ObjectId, ref: 'User', default: null, index: true },
     email: { type: String, default: null, index: true },
-    teamProfile: { type: Schema.Types.ObjectId, ref: 'TeamProfile', default: null, index: true },
+    teamProfile: { type: Schema.Types.ObjectId, ref: 'Ministry', default: null, index: true },
     meta: { type: Schema.Types.Mixed, default: null },
   },
   { timestamps: true, versionKey: false }

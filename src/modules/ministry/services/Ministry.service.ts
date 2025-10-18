@@ -44,6 +44,11 @@ export class MinistryService extends CRUDService {
           email: req.body.inviteeEmail,
           teamProfileId: resource._id,
           ttlMs: 48 * 60 * 60 * 1000, // 48 hours
+          meta: {
+            invitedBy: req.user._id,
+            invitationData: req.body,
+            role: req.body.role || 'member',
+          }
         });
 
         // send invitation email through the email service
@@ -60,4 +65,5 @@ export class MinistryService extends CRUDService {
       }
     }
   );
+
 }

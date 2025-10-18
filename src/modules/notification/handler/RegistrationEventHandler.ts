@@ -2,6 +2,7 @@ import { ErrorUtil } from '../../../middleware/ErrorUtil';
 import { ModelKey, ModelMap } from '../../../utils/ModelMap';
 import { UserType } from '../../auth/models/User';
 import { EmailService } from '../email/EmailService';
+import Notification from '../model/Notification';
 
 export default class RegistrationEventHandler {
   private modelMap: Record<ModelKey, any> = ModelMap;
@@ -34,7 +35,7 @@ export default class RegistrationEventHandler {
     try {
       const { user } = event;
       console.log(`[Notification] Email Verification for email: ${user.email}`);
-      const verificationUrl = `${process.env.FRONTEND_AUTH_URL}/verify-email?token=${user.emailVerificationToken}`;
+
       await EmailService.sendEmail({
         to: user.email,
         subject: 'Welcome to ShepherdCMS - Please Verify Your Email',
@@ -42,9 +43,8 @@ export default class RegistrationEventHandler {
         data: {
           firstName: user.firstName,
           currentYear: new Date().getFullYear(),
-          verificationLink: verificationUrl,
+          verificationLink: process.env.AUTH_URL,
           token: event.token,
-          host: process.env.FRONTEND_AUTH_URL,
           subject: 'Welcome to ShepherdCMS - Please Verify Your Email',
         },
       });
@@ -63,16 +63,14 @@ export default class RegistrationEventHandler {
     // Logic to handle email verification, e.g., logging or sending a confirmation email
     console.log(`[Notification] Email verified for user: ${user.email}`);
     try {
-      await EmailService.sendEmail({
-        to: user.email,
-        subject: 'Your Email Has Been Verified',
-        templateId: 'd-249bb1a6027346ccbd25344eadbe14d4',
-        data: {
-          firstName: user.firstName,
-          currentYear: new Date().getFullYear(),
-          subject: 'Your Email Has Been Verified',
-        },
-      });
+      await Notification.insertNotification(
+        user._id as any,
+        null as any,
+        'Your email has been successfully verified.',
+        null as any,
+        'system',
+        null as any
+      );
     } catch (err: any) {
       console.error('Failed to send email verification confirmation:', err);
       throw new ErrorUtil('Failed to send email verification confirmation', 500);
@@ -105,14 +103,13 @@ export default class RegistrationEventHandler {
     }
   }
 
-  async userRegistered(event: { user: UserType }): Promise<void> {
+  userRegistered = async (event: { user: UserType }): Promise<void> => {
     try {
       const { user } = event;
       if (!user) {
         throw new ErrorUtil('User data is required for user registration event handling', 400);
       }
       console.log(`[Notification] New user registered with email: ${user.email}`);
-      // send welcome email to the user
       await EmailService.sendEmail({
         to: user.email,
         subject: 'Welcome to ShepherdCMS',
@@ -123,7 +120,6 @@ export default class RegistrationEventHandler {
         },
       });
 
-      // Optionally, notify admin about new user registration
       const admin = await this.modelMap['admin'].findOne({
         role: { $in: ['admin', 'superadmin'] },
       });
@@ -139,5 +135,5 @@ export default class RegistrationEventHandler {
       console.error('Failed to send user registration email:', error);
       throw new ErrorUtil('Failed to send user registration email', 500);
     }
-  }
+  };
 }
