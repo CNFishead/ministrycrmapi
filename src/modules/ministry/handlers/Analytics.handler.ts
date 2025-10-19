@@ -103,4 +103,19 @@ export class AnalyticsHandler {
     console.log('[AnalyticsHandler] Gender distribution retrieved:', result);
     return result;
   }
+
+  /**
+   * @description Fetch members who have been absent for a defined period
+   * @param ministryId
+   */
+  public fetchAbsenteeMembers = async (ministryId: string): Promise<any[]> => {
+    return await this.modelMap['member'].aggregate([
+      {
+        $match: {
+          ministry: ministryId,
+          lastCheckInDate: { $lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
+        }, // e.g., absent for more than 30 days
+      },
+    ]);
+  };
 }

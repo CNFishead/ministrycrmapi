@@ -48,7 +48,7 @@ export class MinistryService extends CRUDService {
             invitedBy: req.user._id,
             invitationData: req.body,
             role: req.body.role || 'member',
-          }
+          },
         });
 
         // send invitation email through the email service
@@ -66,4 +66,23 @@ export class MinistryService extends CRUDService {
     }
   );
 
+  public getAttendanceData = asyncHandler(
+    async (req: Request, res: Response): Promise<Response> => {
+      try {
+        const ministryId = req.params.id;
+        const { startDate, endDate } = req.query;
+
+        const attendanceData = await this.handler.attendanceData(
+          ministryId,
+          startDate ? new Date(startDate as any) : undefined,
+          endDate ? new Date(endDate as any) : undefined
+        );
+
+        return res.status(200).json({ success: true, payload: attendanceData });
+      } catch (err: any) {
+        console.error(err);
+        return error(err, req, res, null);
+      }
+    }
+  );
 }

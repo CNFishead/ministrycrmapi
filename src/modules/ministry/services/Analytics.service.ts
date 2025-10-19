@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import asyncHandler from '../../../middleware/asyncHandler';
 import { CRUDService } from '../../../utils/baseCRUD';
 import { MinistryHandler } from '../handlers/Ministry.handler';
@@ -16,7 +16,9 @@ export class AnalyticService {
   public attendanceData = asyncHandler(async (req: Request, res: Response): Promise<Response> => {
     try {
       const result = await this.checksumService.getResourcesData(req as any);
-      return res.status(200).json({ success: true, payload: result });
+      return res
+        .status(200)
+        .json({ success: true, payload: result.entries, metadata: result.metadata });
     } catch (err: any) {
       console.error(err);
       return res.status(500).json({ success: false, message: err.message });
@@ -27,34 +29,34 @@ export class AnalyticService {
     async (req: Request, res: Response): Promise<Response> => {
       try {
         const { entries: ministries } = await this.ministryService.getResourcesData(req as any);
-         
+
         if (!ministries.length) {
-          return res.status(404).json({ 
-            success: false, 
-            message: 'No ministries found with the specified filters' 
+          return res.status(404).json({
+            success: false,
+            message: 'No ministries found with the specified filters',
           });
         }
 
         const targetMinistry = ministries[0];
-        
+
         if (!targetMinistry.members || !targetMinistry.members.length) {
-          return res.status(200).json({ 
-            success: true, 
+          return res.status(200).json({
+            success: true,
             payload: [],
-            message: 'No members found in the ministry'
+            message: 'No members found in the ministry',
           });
         }
 
         const result = await this.handler.getGenderDistribution(targetMinistry.members as any[]);
-        
-        return res.status(200).json({ 
-          success: true, 
+
+        return res.status(200).json({
+          success: true,
           payload: result,
           metadata: {
             ministryId: targetMinistry._id,
             ministryName: targetMinistry.name,
-            totalMembers: targetMinistry.members.length
-          }
+            totalMembers: targetMinistry.members.length,
+          },
         });
       } catch (err: any) {
         console.error(err);
@@ -63,13 +65,27 @@ export class AnalyticService {
     }
   );
 
-  public memberCheckInData = asyncHandler(async (req: Request, res: Response): Promise<Response> => {
-    try {
-      const result = await this.handler.memberCheckInData(req as any);
-      return res.status(200).json({ success: true, payload: result });
-    } catch (err: any) {
-      console.error(err);
-      return res.status(500).json({ success: false, message: err.message });
+  public memberCheckInData = asyncHandler(
+    async (req: Request, res: Response): Promise<Response> => {
+      try {
+        const result = await this.handler.memberCheckInData(req as any);
+        return res.status(200).json({ success: true, payload: result });
+      } catch (err: any) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: err.message });
+      }
     }
-  });
+  );
+
+  public fetchAbsenteeMembers = asyncHandler(
+    async (req: Request, res: Response): Promise<Response> => {
+      try {
+        const result = await this.handler.fetchAbsenteeMembers(req.params.ministryId);
+        return res.status(200).json({ success: true, payload: result });
+      } catch (err: any) {
+        console.error(err);
+        return res.status(500).json({ success: false, message: err.message });
+      }
+    }
+  );
 }

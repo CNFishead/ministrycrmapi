@@ -9,6 +9,7 @@ const service = new AnalyticService();
 router.use(AuthMiddleware.protect); 
 router.route('/attendance/data').get(service.attendanceData);
 router.route('/data/gender').get(service.genderDistribution);
+router.route('/absentee-members').get(service.fetchAbsenteeMembers);
 
 router.use(AuthMiddleware.authorizeRoles(['admin', 'superadmin']) as any);
 

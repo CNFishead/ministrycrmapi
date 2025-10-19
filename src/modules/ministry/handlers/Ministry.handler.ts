@@ -6,16 +6,21 @@ import MinistryModel, { IMinistry } from '../models/Ministry.model';
 
 export class MinistryHandler extends CRUDHandler<IMinistry> {
   private modelMap: Record<ModelKey, any> = ModelMap;
+  private checkSumHandler: any;
+
   constructor() {
     super(MinistryModel);
+    // Import CheckSumHandler dynamically to avoid circular dependencies
+    const { CheckSumHandler } = require('./CheckSum.handler');
+    this.checkSumHandler = new CheckSumHandler();
   }
 
   // fetch a ministry for a profile, this will include whether or not the selected profile needs to complete
   // billing setup
   async getMinistryForProfile(profileId: string) {
     const ministry = await this.Schema.findOne({
-      admins: {
-        $in: [profileId],
+      linkedUsers: {
+        $elemMatch: { user: profileId },
       },
     })
       .populate({
@@ -109,5 +114,48 @@ export class MinistryHandler extends CRUDHandler<IMinistry> {
         },
       },
     });
+  }
+
+  /**
+   * @description Fetches attendance data for a ministry within a date range
+   * @param ministryId - The ID of the ministry to fetch attendance data for
+   * @param startDate - Optional start date for filtering attendance data
+   * @param endDate - Optional end date for filtering attendance data
+   * @returns Array of attendance data with dates and check-in counts
+   */
+  async attendanceData(ministryId: string, startDate?: Date, endDate?: Date): Promise<any[]> {
+    console.log(`[MinistryHandler] Fetching attendance data for ministry: ${ministryId}`);
+
+    try {
+      // Build filter options for the ministry and optional date range
+      const filters: any[] = [{ ministry: ministryId }];
+
+      if (startDate || endDate) {
+        const dateFilter: any = {};
+        if (startDate) {
+          dateFilter.$gte = startDate;
+        }
+        if (endDate) {
+          dateFilter.$lte = endDate;
+        }
+        filters.push({ date: dateFilter });
+      }
+
+      // Use the CheckSumHandler to fetch data with consistent filtering logic
+      const [result] = await this.checkSumHandler.fetchAll({
+        filters,
+        sort: { date: 1 },
+        query: [], // No keyword search needed for this use case
+        page: 1,
+        limit: 1000, // High limit to get all data within date range
+      });
+
+      console.log(`[MinistryHandler] Retrieved ${result.entries.length} attendance records`);
+
+      return result.entries;
+    } catch (error: any) {
+      console.error(`[MinistryHandler] Error fetching attendance data:`, error);
+      throw new ErrorUtil(`Failed to fetch attendance data: ${error.message}`, 500);
+    }
   }
 }
