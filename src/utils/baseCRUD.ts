@@ -154,37 +154,47 @@ export abstract class CRUDService {
       this.ensureAuthenticated(req as AuthenticatedRequest, 'getResources');
       const pageSize = Number(req.query?.pageLimit) || 10;
       const page = Number(req.query?.pageNumber) || 1;
-      // Generate the keyword query
+
+      // Generate the keyword query for $or conditions
       const keywordQuery = AdvFilters.query(this.queryKeys, req.query?.keyword as string);
 
-      // Generate the filter options for inclusion if provided
+      // Generate the filter options for $and conditions
+      const filterOptions = AdvFilters.filter(req.query?.filterOptions as string);
+
+      // Generate include options for $or conditions (match ANY of these)
       const filterIncludeOptions = AdvFilters.filter(req.query?.includeOptions as string);
 
-      // Construct the `$or` array conditionally
+      // Transform includeOptions into separate $or expressions
+      // From: [{ _id: '123', ownerMinistry: '456' }]
+      // To: [{ _id: '123' }, { ownerMinistry: '456' }]
+      const includeOrExpressions = filterIncludeOptions.flatMap((filter) =>
+        Object.entries(filter).map(([key, value]) => ({ [key]: value }))
+      );
+
+      // Construct $or conditions: keyword search OR include options
       const orConditions = [
         ...(Object.keys(keywordQuery[0]).length > 0 ? keywordQuery : []),
-        ...(Array.isArray(filterIncludeOptions) &&
-        filterIncludeOptions.length > 0 &&
-        Object.keys(filterIncludeOptions[0]).length > 0
-          ? filterIncludeOptions
-          : []), // Only include if there are filters
+        ...includeOrExpressions,
       ];
 
       await this.beforeFetchAll({
-        filters: AdvFilters.filter(req.query?.filterOptions as string),
+        filters: filterOptions,
         sort: AdvFilters.sort((req.query?.sortOptions as string) || '-createdAt'),
         query: orConditions,
         page,
         limit: pageSize,
       });
+
       const [result] = await this.handler.fetchAll({
-        filters: AdvFilters.filter(req.query?.filterOptions as string),
+        filters: filterOptions,
         sort: AdvFilters.sort((req.query?.sortOptions as string) || '-createdAt'),
         query: orConditions,
         page,
         limit: pageSize,
       });
+
       await this.afterFetchAll(result);
+
       return res.status(200).json({
         success: true,
         payload: [...result.entries],
@@ -206,24 +216,30 @@ export abstract class CRUDService {
     const pageSize = Number(req.query?.pageLimit) || 10;
     const page = Number(req.query?.pageNumber) || 1;
 
-    // Generate the keyword query
+    // Generate the keyword query for $or conditions
     const keywordQuery = AdvFilters.query(this.queryKeys, req.query?.keyword as string);
 
-    // Generate the filter options for inclusion if provided
+    // Generate the filter options for $and conditions
+    const filterOptions = AdvFilters.filter(req.query?.filterOptions as string);
+
+    // Generate include options for $or conditions (match ANY of these)
     const filterIncludeOptions = AdvFilters.filter(req.query?.includeOptions as string);
 
-    // Construct the `$or` array conditionally
+    // Transform includeOptions into separate $or expressions
+    // From: [{ _id: '123', ownerMinistry: '456' }]
+    // To: [{ _id: '123' }, { ownerMinistry: '456' }]
+    const includeOrExpressions = filterIncludeOptions.flatMap((filter) =>
+      Object.entries(filter).map(([key, value]) => ({ [key]: value }))
+    );
+
+    // Construct $or conditions: keyword search OR include options
     const orConditions = [
       ...(Object.keys(keywordQuery[0]).length > 0 ? keywordQuery : []),
-      ...(Array.isArray(filterIncludeOptions) &&
-      filterIncludeOptions.length > 0 &&
-      Object.keys(filterIncludeOptions[0]).length > 0
-        ? filterIncludeOptions
-        : []),
+      ...includeOrExpressions,
     ];
 
     await this.beforeFetchAll({
-      filters: AdvFilters.filter(req.query?.filterOptions as string),
+      filters: filterOptions,
       sort: AdvFilters.sort((req.query?.sortOptions as string) || '-createdAt'),
       query: orConditions,
       page,
@@ -231,7 +247,7 @@ export abstract class CRUDService {
     });
 
     const [result] = await this.handler.fetchAll({
-      filters: AdvFilters.filter(req.query?.filterOptions as string),
+      filters: filterOptions,
       sort: AdvFilters.sort((req.query?.sortOptions as string) || '-createdAt'),
       query: orConditions,
       page,
