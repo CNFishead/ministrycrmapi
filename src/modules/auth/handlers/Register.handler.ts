@@ -93,7 +93,7 @@ export class RegisterHandler {
           this.ministry = await this.modelMap['ministry'].findById(tokenDoc.teamProfile);
 
           // consume the token
-          await this.modelMap['token'].consume(tokenDoc._id as string);
+          await Token.consume(tokenDoc._id as any);
         }
       }
 
@@ -106,6 +106,16 @@ export class RegisterHandler {
         );
       }
 
+      // create a token for email verification
+      const { token: emailToken } = await Token.issue({
+        type: 'EMAIL_VERIFY',
+        email: this.user.email,
+        userId: this.user._id,
+        ttlMs: 3600000, // 1 hour
+        uniquePerSubject: true,
+        meta: { purpose: 'Verify email address' },
+      });
+ 
       const token = jwt.sign(
         {
           userId: this.user._id,
@@ -134,6 +144,7 @@ export class RegisterHandler {
         token,
         profileRefs: this.profileRefs,
         user: this.user,
+        emailVerificationToken: emailToken,
       };
 
       // Reset state after successful execution
@@ -199,7 +210,7 @@ export class RegisterHandler {
 
     // next if we have a token (invitation), we want to ensure that the email they are attempting to register with matches the invitation email
     if (this.data.token) {
-      const tokenDoc = await this.modelMap['token'].validateRaw({
+      const tokenDoc = await Token.validateRaw({
         rawToken: this.data.token,
         type: 'TEAM_INVITE',
       });
@@ -220,17 +231,6 @@ export class RegisterHandler {
     });
 
     this.user = await this.modelMap['auth'].create(this.data.userInfo);
-
-    // create a token for email verification
-    const { token } = await this.modelMap['token'].issue({
-      type: 'EMAIL_VERIFY',
-      email: this.user.email,
-      ttlMs: 3600000, // 1 hour
-      uniquePerSubject: true,
-      meta: { purpose: 'Verify email address' },
-    });
-
-    this.user.emailVerificationToken = token; // so we can pass this to the email service.
 
     // unique tail to the access key to avoid collisions
     const uniqueTail = this.user._id.toString().slice(-6);
@@ -360,7 +360,7 @@ export class RegisterHandler {
     if (!user) throw new Error('User not found');
 
     // Use the Token schema to issue a new email verification token
-    const { token } = await this.modelMap['token'].issue({
+    const { token } = await Token.issue({
       userId: user._id,
       type: 'EMAIL_VERIFY',
       email: user.email,

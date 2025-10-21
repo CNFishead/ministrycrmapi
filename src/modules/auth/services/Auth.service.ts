@@ -19,10 +19,10 @@ export default class AuthService {
       const result = await this.registerHandler.execute(req.body);
 
       eventBus.publish('user.registered', {
-        user: result.user,
+        ...result,
       });
       eventBus.publish('email.verify', {
-        user: result.user,
+        ...result,
       });
 
       result.user = null;
@@ -117,6 +117,7 @@ export default class AuthService {
           .status(200)
           .json({ success: true, message: 'Verification email sent', token: result.token });
       } catch (err: any) {
+        console.error(err);
         return error(err, req, res);
       }
     }

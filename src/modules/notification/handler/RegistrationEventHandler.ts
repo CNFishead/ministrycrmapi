@@ -44,7 +44,7 @@ export default class RegistrationEventHandler {
           firstName: user.firstName,
           currentYear: new Date().getFullYear(),
           verificationLink: process.env.AUTH_URL,
-          token: event.token,
+          token: event.emailVerificationToken,
           subject: 'Welcome to ShepherdCMS - Please Verify Your Email',
         },
       });

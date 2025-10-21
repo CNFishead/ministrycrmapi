@@ -94,26 +94,13 @@ TokenSchema.statics.issue = async function ({
 }): Promise<{ token: string; doc: TokenDoc }> {
   const now = new Date();
 
-  // Check for existing valid tokens
+  // Consume any existing tokens (expired or not) to prevent conflicts
   if (uniquePerSubject) {
-    const filter: any = { type, consumedAt: null, expiresAt: { $gt: now } };
+    const filter: any = { type, consumedAt: null };
     if (userId) filter.user = userId;
     if (email) filter.email = email;
 
-    const existingToken = await this.findOne(filter);
-
-    if (existingToken) {
-      // Return the existing valid token instead of creating a new one
-      // We need to reconstruct the raw token - but we can't since it's hashed
-      // So instead, consume the old token and create a new one
-      await this.updateOne({ _id: existingToken._id }, { $set: { consumedAt: now } });
-    }
-
-    // Also consume any other tokens (expired or not) to prevent conflicts
-    const allFilter: any = { type, consumedAt: null };
-    if (userId) allFilter.user = userId;
-    if (email) allFilter.email = email;
-    await this.updateMany(allFilter, { $set: { consumedAt: now } });
+    await this.updateMany(filter, { $set: { consumedAt: now } });
   }
 
   const raw = genToken(32);
