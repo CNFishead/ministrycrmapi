@@ -136,7 +136,7 @@ export class RegisterHandler {
           null as any, // switch this to a centralized admin user id later
           'Registration Event',
           `New user registered: ${this.user.email}`,
-          `user_registered`,
+          `user-registered`,
           this.user._id as any
         );
       }
