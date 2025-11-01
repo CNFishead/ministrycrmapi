@@ -48,14 +48,27 @@ export class UserHandler extends CRUDHandler<UserType> {
       console.log(`Cleaning up profile for role: ${role}, profileId: ${profileId}`);
       const profile = await this.modelMap[role].findById(profileId);
       if (!profile) continue;
-      
+
       // Remove the userId from the profile
       profile.userId = null;
 
-      if (role === 'team') {
+      if (role === 'ministry') {
         profile.linkedUsers = profile.linkedUsers.filter((id: string) => id !== doc.id);
       }
       await profile.save();
     }
+
+    // Extra things for cleanup; Notifications, login sessions, ApiKeys, billing records, etc.
+    // Remove notifications related to this user
+    await this.modelMap['notification'].deleteMany({ userTo: doc._id });
+
+    // Remove login sessions related to this user
+    await this.modelMap['loginSession'].deleteMany({ userId: doc._id });
+
+    // Remove API keys related to this user
+    await this.modelMap['apiKey'].deleteMany({ userId: doc._id });
+
+    // Remove billing records related to this user
+    await this.modelMap['billing'].deleteMany({ payor: doc._id });
   }
 }

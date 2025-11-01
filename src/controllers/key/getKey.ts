@@ -2,7 +2,7 @@ import { Response } from 'express';
 import asyncHandler from '../../middleware/asyncHandler';
 import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
 import error from '../../middleware/error';
-import ApiKeySchema from '../../models/ApiKeySchema';
+import ApiKeySchema from '../../modules/auth/models/ApiKeySchema';
 
 /**
  * @description This function returns a single item from the database
@@ -16,31 +16,24 @@ import ApiKeySchema from '../../models/ApiKeySchema';
  * @since 1.0
  * @lastUpdated 2024-08-28 09:29:34
  */
-export default asyncHandler(
-  async (req: AuthenticatedRequest, res: Response, next: any) => {
-    try {
-      if (!req.params?.id)
-        return res
-          .status(400)
-          .json({ success: false, data: { message: 'No id provided' } });
+export default asyncHandler(async (req: AuthenticatedRequest, res: Response, next: any) => {
+  try {
+    if (!req.params?.id)
+      return res.status(400).json({ success: false, data: { message: 'No id provided' } });
 
-      const data = await ApiKeySchema.findById(req.params.id);
+    const data = await ApiKeySchema.findById(req.params.id);
 
-      if (!data)
-        return res
-          .status(400)
-          .json({ success: false, data: { message: 'No item found' } });
+    if (!data) return res.status(400).json({ success: false, data: { message: 'No item found' } });
 
-      return res.status(200).json({
-        success: true,
-        payload: {
-          message: 'success',
-          data,
-        },
-      });
-    } catch (e: any) {
-      console.error(e);
-      error(e, req, res);
-    }
+    return res.status(200).json({
+      success: true,
+      payload: {
+        message: 'success',
+        data,
+      },
+    });
+  } catch (e: any) {
+    console.error(e);
+    error(e, req, res);
   }
-);
+});

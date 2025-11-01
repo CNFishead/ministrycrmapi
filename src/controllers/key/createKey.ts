@@ -1,9 +1,9 @@
 import errorHandler from '../../middleware/error';
 import { AuthenticatedRequest } from '../../types/AuthenticatedRequest';
 import asyncHandler from '../../middleware/asyncHandler';
-import { Response } from 'express';
-import ApiKeySchema from '../../models/ApiKeySchema';
+import { Response } from 'express'; 
 import { createHmac, randomBytes } from 'crypto';
+import ApiKeySchema from '../../modules/auth/models/ApiKeySchema';
 
 /**
  * @description - Creates a new ticket

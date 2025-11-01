@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 import User from '../modules/auth/models/User';
 import mongoose from 'mongoose';
 import moment from 'moment';
-import ApiKeySchema from '../models/ApiKeySchema';
+import ApiKeySchema from '../modules/auth/models/ApiKeySchema';
 import { hashApiKey } from '../controllers/key/createKey';
 
 interface JwtPayload {
