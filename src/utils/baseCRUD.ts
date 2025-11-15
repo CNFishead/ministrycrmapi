@@ -176,7 +176,8 @@ export abstract class CRUDService {
         ...(Object.keys(keywordQuery[0]).length > 0 ? keywordQuery : []),
         ...includeOrExpressions,
       ];
-
+      console.log(filterOptions)
+      console.log(orConditions);
       await this.beforeFetchAll({
         filters: filterOptions,
         sort: AdvFilters.sort((req.query?.sortOptions as string) || '-createdAt'),

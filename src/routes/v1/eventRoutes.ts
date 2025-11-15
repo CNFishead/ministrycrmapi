@@ -1,14 +1,15 @@
-import express from "express";
-import { protect } from "../../middleware/auth";
-import getEvents from "../../controllers/event/getEvents";
-import createEvent from "../../controllers/event/createEvent";
-import updateEvent from "../../controllers/event/updateEvent";
-import deleteEvent from "../../controllers/event/deleteEvent";
+import express from 'express';
+import { protect } from '../../middleware/auth';
+import getEvents from '../../controllers/event/getEvents';
+import createEvent from '../../controllers/event/createEvent';
+import updateEvent from '../../controllers/event/updateEvent';
+import deleteEvent from '../../controllers/event/deleteEvent';
+import { AuthMiddleware } from '../../middleware/AuthMiddleware';
 const router = express.Router();
 
 // Import all of our routes
-router.use(protect());
-router.route("/").get(getEvents).post(createEvent);
-router.route("/:id").get().put(updateEvent).delete(deleteEvent);
+router.use(AuthMiddleware.protect);
+router.route('/').get(getEvents).post(createEvent);
+router.route('/:id').get().put(updateEvent).delete(deleteEvent);
 
 export default router;

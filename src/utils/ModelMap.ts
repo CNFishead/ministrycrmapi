@@ -11,6 +11,7 @@ import Receipt from '../modules/payment/models/Receipt';
 import Notification from '../modules/notification/model/Notification';
 import SignInLog from '../modules/auth/models/SignInLog';
 import ApiKeySchema from '../modules/auth/models/ApiKeySchema';
+import Family from '../models/Family';
 
 export type ModelKey =
   | 'auth'
@@ -25,7 +26,8 @@ export type ModelKey =
   | 'receipt'
   | 'notification'
   | 'loginSession'
-  | 'apiKey';
+  | 'apiKey'
+  | 'family';
 
 export const ModelMap: Record<ModelKey, any> = {
   auth: User,
@@ -41,4 +43,5 @@ export const ModelMap: Record<ModelKey, any> = {
   notification: Notification,
   loginSession: SignInLog,
   apiKey: ApiKeySchema,
+  family: Family,
 };

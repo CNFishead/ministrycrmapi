@@ -21,6 +21,10 @@ const FamilySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    ministry: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Ministry",
+    },
     members: [
       {
         type: mongoose.Schema.Types.ObjectId,

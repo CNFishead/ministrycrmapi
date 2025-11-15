@@ -71,6 +71,22 @@ class DevTool {
   async customTask(): Promise<void> {
     console.log('🛠️  Running custom task...');
     try {
+      // find all families without a ministry assigned
+      const familiesWithoutMinistry = await this.modelMap['family'].find({ ministry: { $exists: false } });
+      console.log(`Found ${familiesWithoutMinistry.length} families without a ministry assigned.`);
+
+      for (const family of familiesWithoutMinistry) {
+        console.log(`Family ${family._id} has no ministry assigned.`);
+        // use the family 'user' id field to find a mainMinistry from the ministry collection
+        const mainMinistry = await this.modelMap['ministry'].findOne({ linkedUsers: { $elemMatch: { user: family.user } } });
+        if (mainMinistry) {
+          family.ministry = mainMinistry._id;
+          await family.save();
+          console.log(`Assigned ministry ${mainMinistry._id} to family ${family._id}.`);
+        } else {
+          console.log(`No ministry found for family ${family._id} user ${family.user}.`);
+        }
+      }
       console.log('\n✅ Custom task completed successfully');
     } catch (error) {
       console.log('❌ Error in custom task:', error);

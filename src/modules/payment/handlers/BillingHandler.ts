@@ -6,38 +6,17 @@ import PaymentProcessorFactory from '../factory/PaymentProcessorFactory';
 import { PaymentHandler } from './PaymentHandler';
 import { getPaymentSafeCountryCode } from '../utils/countryHelpers';
 import { validatePaymentFormData } from '../utils/paymentValidation';
+import PaymentProcessingHandler from './PaymentProcessing.handler';
 
 export class BillingHandler {
   constructor(private readonly paymentHandler: PaymentHandler = new PaymentHandler()) {}
   async updateVault(req: AuthenticatedRequest): Promise<Boolean> {
     const { id } = req.params;
     const { paymentFormValues, selectedPlans, billingCycle, paymentMethod } = req.body;
-    // console.log(paymentFormValues);
-
     // first step find the billing information from the provided profile id
-    let billing = await BillingAccount.findOne({ profileId: id }).populate('payor profileId');
+    const billing = await BillingAccount.findOne({ profileId: id }).populate('payor profileId');
     if (!billing) {
-      // Edge case: billing account doesn't exist, create one
-      console.log(`[BillingHandler] No billing account found for profile ${id}, creating one...`);
-      try {
-        billing = await BillingAccount.create({
-          profileId: id,
-          profileType: 'ministry', // Default to ministry since this is a ministry CRM
-          email: req.user.email,
-          status: 'active',
-          vaulted: false,
-          payor: req.user._id,
-        });
-        console.log(
-          `[BillingHandler] Created billing account for profile ${id} with payor ${req.user._id}`
-        );
-      } catch (error: any) {
-        console.error(
-          `[BillingHandler] Failed to create billing account for profile ${id}:`,
-          error
-        );
-        throw new ErrorUtil(`Failed to create billing account: ${error.message}`, 500);
-      }
+      throw new ErrorUtil('Could not find billing information', 404);
     }
     const processorResult = await new PaymentProcessorFactory().smartChooseProcessor();
     const processor = processorResult.processor;
@@ -56,16 +35,9 @@ export class BillingHandler {
 
     // Handle paid plans - require payment processing
     if (!isFree) {
-      // if we dont have a customerId on billing object we need to create that first
-      if (!billing.customerId) {
-        const customer = await this.paymentHandler.createCustomer(req.user);
-        // update the billing object with the customerId
-        billing.customerId = customer.payload._id;
-        billing.payor = req.user;
-      }
-
+      billing.payor = req.user;
       // we need to update our vaulting
-      const vaultResponse = await processor.createVault(billing.customerId, {
+      const vaultResponse = await processor.createVault(billing as any, {
         ...paymentFormValues,
         email: billing.email,
         paymentMethod: paymentMethod,
@@ -79,12 +51,13 @@ export class BillingHandler {
         cvv: paymentFormValues?.cvv,
         achDetails: paymentFormValues?.achDetails,
       } as any);
+
       if (!vaultResponse.success) {
-        console.log(`[BillingHandler] - vaulting was not successful: ${vaultResponse.message}`);
-        console.log(vaultResponse);
+        console.info(`[BillingHandler] - vaulting was not successful: ${vaultResponse.message}`);
+        console.info(vaultResponse);
         throw new ErrorUtil(`${vaultResponse.message}`, 400);
       }
-      // Update billing account with PayNetWorx token information
+
       billing.vaulted = true;
 
       // Initialize paymentProcessorData if it doesn't exist
@@ -121,18 +94,33 @@ export class BillingHandler {
       billing.needsUpdate = false; // No need for update on free plans
     } else {
       // set the nextBillingDate to the first of next month
-      billing.nextBillingDate = moment().add(1, 'month').startOf('month').toDate();
+      // if the account needed update, we can assume they are switching plans or updating payment
+      // so we will not change the nextBillingDate if its already set in the future
+
+      // Only update nextBillingDate if needsUpdate is false (account is in good standing)
+      // This prevents giving users a free month when they're updating due to failed payments
+      if (!billing.needsUpdate) {
+        // if nextBillingDate is not set or is in the past, set it to the first of next month
+        if (!billing.nextBillingDate || !moment(billing.nextBillingDate).isAfter(moment())) {
+          const nextMonth = moment().add(1, 'month').startOf('month');
+          billing.nextBillingDate = nextMonth.toDate();
+        }
+      }
       billing.status = 'active';
       billing.needsUpdate = false; // if it was true set by admin, this will flip it off
+      
+      await billing.save();
 
-      // next we need to create an initial charge for them the "setup fee" they wont be charged their subscription
-      // until their next billing date, but the setup fee is charged immediately.
-      // const paymentResults = await PaymentProcessingHandler.processPaymentForProfile(id as string, 50, false, 'Account setup fee');
-      // if(paymentResults.success === false){
-      //   console.log(`[BillingHandler] - Initial setup fee payment failed: ${paymentResults.message}`);
+      // if (!billing.setupFeePaid) {
+      //   // next we need to create an initial charge for them the "setup fee" they wont be charged their subscription
+      //   // until their next billing date, but the setup fee is charged immediately.
+      //   const paymentResults = await PaymentProcessingHandler.processPaymentForProfile(billing._id as any, 50, false, 'Account setup fee');
+      //   if (paymentResults.success === false) {
+      //     console.info(`[BillingHandler] - Initial setup fee payment failed: ${paymentResults.message}`);
+      //   }
+      //   // update the billing for the setup fee to being paid
+      //   billing.setupFeePaid = true; // for now signup's dont have a setup fee
       // }
-      // update the billing for the setup fee to being paid
-      billing.setupFeePaid = true; // for now signup's dont have a setup fee
     }
 
     // finally set the processor correctly
@@ -180,7 +168,7 @@ export class BillingHandler {
         billingDetails,
       };
     } catch (err) {
-      console.log(err);
+      console.error(err);
       throw new ErrorUtil('Something went wrong', 400);
     }
   }
